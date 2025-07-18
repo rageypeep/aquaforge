@@ -23,7 +23,6 @@ fn spawn_chunk_mesh(
     let mut normals = Vec::new();
     let mut colors = Vec::new();
     let mut indices = Vec::new();
-    let mut i = 0u32;
 
     // Offsets and face normals for all 6 faces
     let faces = [
@@ -85,7 +84,6 @@ fn spawn_chunk_mesh(
                             base, base + 1, base + 2,
                             base, base + 2, base + 3,
                         ]);
-                        i += 4;
                     }
                 }
             }
