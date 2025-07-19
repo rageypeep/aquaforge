@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 bevy = "0.13"
+rusqlite = { version = "0.31", features = ["bundled"] }

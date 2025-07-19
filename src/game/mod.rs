@@ -1,5 +1,6 @@
 pub mod chunk;
 use chunk::{Chunk, BlockType, CHUNK_SIZE};
+use crate::db::Db;
 use bevy::prelude::*;
 use bevy::render::mesh::{Mesh, PrimitiveTopology, Indices};
 use bevy::render::render_asset::RenderAssetUsages;
@@ -16,8 +17,10 @@ fn spawn_chunk_mesh(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    db: Res<Db>,
 ) {
-    let chunk = Chunk::new();
+    let conn = db.0.lock().unwrap();
+    let chunk = Chunk::from_db(&conn, 1);
 
     let mut positions = Vec::new();
     let mut normals = Vec::new();
@@ -67,6 +70,8 @@ fn spawn_chunk_mesh(
                             BlockType::Stone => [0.2, 0.2, 0.25, 1.0],
                             BlockType::Sand => [0.8, 0.8, 0.2, 1.0],
                             BlockType::Dirt => [0.5, 0.3, 0.1, 1.0],
+                            BlockType::Coral => [0.9, 0.2, 0.5, 1.0],
+                            BlockType::Seaweed => [0.1, 0.8, 0.1, 1.0],
                             _ => [1.0, 1.0, 1.0, 1.0],
                         };
                         let base = positions.len() as u32;

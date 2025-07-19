@@ -7,12 +7,14 @@ mod game;
 mod utils;
 mod systems;
 mod rendering;
+mod db;
 
 fn main() {
     App::new()
         .insert_resource(Msaa::Sample4)
         .add_plugins(DefaultPlugins)
         .add_plugins((
+            db::DatabasePlugin,
             game::GamePlugin,
             systems::ControlsPlugin, // this will add all control systems (including mouse look setup)
         ))
