@@ -1,30 +1,28 @@
-// src/main.rs
+//! AquaForge: an underwater, Minecraft-style voxel game built on Bevy 0.18.
 
 use bevy::prelude::*;
 
-// Modules go here
 mod game;
-mod utils;
-mod systems;
 mod rendering;
+mod systems;
+mod utils;
 
 fn main() {
     App::new()
-        .insert_resource(Msaa::Sample4)
-        .add_plugins(DefaultPlugins)
+        .add_plugins(
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "AquaForge".to_string(),
+                    resolution: (1280u32, 720u32).into(),
+                    ..default()
+                }),
+                ..default()
+            }),
+        )
         .add_plugins((
+            rendering::AtmospherePlugin,
             game::GamePlugin,
-            systems::ControlsPlugin, // this will add all control systems (including mouse look setup)
+            systems::ControlsPlugin,
         ))
-        .add_systems(Startup, setup_camera)
         .run();
-}
-
-// Basic 3D camera setup
-fn setup_camera(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 25.0, 40.0)
-            .looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y),
-        ..default()
-    });
 }
