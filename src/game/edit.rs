@@ -243,28 +243,38 @@ fn edit_blocks(
         if target.face_normal == IVec3::ZERO {
             return;
         }
+        let Some(block) = inventory.peek_selected() else {
+            return;
+        };
         let place_pos = target.world_block + target.face_normal;
-        if let Some(block) = inventory.take_selected() {
-            set_block(place_pos, block, &chunk_map, &mut chunks, &mut meshes);
+        // Only deduct inventory once we know the placement actually landed
+        // (e.g. not in an unloaded chunk at the world edge).
+        if set_block(place_pos, block, &chunk_map, &mut chunks, &mut meshes) {
+            inventory.take_selected();
         }
     }
 }
 
+/// Writes `block` into `world_block`, rebuilding the chunk mesh on success.
+///
+/// Returns `true` if the write hit a loaded chunk, `false` if it was dropped
+/// (e.g. the coordinate is outside the spawned world).
 fn set_block(
     world_block: IVec3,
     block: BlockType,
     chunk_map: &ChunkMap,
     chunks: &mut Query<(&mut Chunk, &mut Mesh3d)>,
     meshes: &mut ResMut<Assets<Mesh>>,
-) {
+) -> bool {
     let (chunk_pos, local) = world_block_to_chunk(world_block);
     let Some(entity) = chunk_map.get(chunk_pos) else {
-        return;
+        return false;
     };
     let Ok((mut chunk, mut mesh)) = chunks.get_mut(entity) else {
-        return;
+        return false;
     };
     chunk.set(local.x as usize, local.y as usize, local.z as usize, block);
     let new_mesh = chunk.build_mesh();
     mesh.0 = meshes.add(new_mesh);
+    true
 }

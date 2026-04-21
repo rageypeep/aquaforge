@@ -70,6 +70,15 @@ impl Default for Inventory {
 }
 
 impl Inventory {
+    /// The block type the active slot would place, or `None` if empty.
+    ///
+    /// Does not modify the slot; use [`Self::take_selected`] to actually
+    /// consume one unit once the placement is confirmed.
+    pub fn peek_selected(&self) -> Option<BlockType> {
+        let slot = self.slots[self.selected];
+        (slot.count > 0).then_some(slot.block)
+    }
+
     /// Take one unit from the active slot. Returns the block type that was
     /// taken, or `None` if the slot is empty.
     pub fn take_selected(&mut self) -> Option<BlockType> {
