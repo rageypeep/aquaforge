@@ -6,18 +6,18 @@
   <title>AquaForge — Progress</title>
   <style>
     :root {
-      --bg: #0b1420;
-      --bg-2: #0f1c2e;
-      --panel: #13263c;
-      --panel-2: #102032;
-      --ink: #e7eef7;
-      --ink-dim: #9db3c7;
+      --bg: #06121e;
+      --bg-2: #0a1c2e;
+      --panel: #0f2639;
+      --panel-2: #0b1d2f;
+      --ink: #e6eef7;
+      --ink-dim: #9dbacf;
       --accent: #57d0ff;
       --accent-2: #7fe3c7;
+      --coral: #f27a90;
       --warn: #ffcc66;
-      --danger: #ff7a7a;
       --ok: #6ee7a7;
-      --border: #1f3553;
+      --border: #1b3553;
     }
     * { box-sizing: border-box; }
     html, body {
@@ -26,8 +26,8 @@
                    "Helvetica Neue", Arial, sans-serif;
       color: var(--ink);
       background:
-        radial-gradient(1200px 600px at 10% -10%, #143759 0%, transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, #0d2a3d 0%, transparent 55%),
+        radial-gradient(1200px 600px at 10% -10%, #0d3753 0%, transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, #0a2639 0%, transparent 55%),
         linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
       background-attachment: fixed;
       line-height: 1.55;
@@ -43,7 +43,7 @@
       font-size: 0.92em;
     }
     kbd {
-      background: #0b1a2b;
+      background: #08182a;
       box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08);
     }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
@@ -54,7 +54,7 @@
       border-radius: 18px;
       background:
         linear-gradient(135deg, rgba(87,208,255,0.10), rgba(127,227,199,0.06)),
-        linear-gradient(180deg, #0f233a 0%, #0a1828 100%);
+        linear-gradient(180deg, #0f2a42 0%, #081626 100%);
       border: 1px solid var(--border);
       overflow: hidden;
     }
@@ -64,7 +64,8 @@
       background-image:
         radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.25), transparent 40%),
         radial-gradient(2px 2px at 80% 70%, rgba(127,227,199,0.3), transparent 40%),
-        radial-gradient(1.5px 1.5px at 60% 40%, rgba(87,208,255,0.3), transparent 40%);
+        radial-gradient(1.5px 1.5px at 60% 40%, rgba(87,208,255,0.3), transparent 40%),
+        radial-gradient(1.5px 1.5px at 35% 80%, rgba(242,122,144,0.25), transparent 40%);
       opacity: 0.6;
       pointer-events: none;
     }
@@ -83,12 +84,12 @@
       font-size: clamp(2.2rem, 4vw, 3.2rem);
       margin: 14px 0 8px;
       letter-spacing: -0.01em;
-      background: linear-gradient(90deg, #cdebff 0%, #7fe3c7 100%);
+      background: linear-gradient(90deg, #cdebff 0%, #7fe3c7 60%, #f6b4c1 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
-    .subtitle { color: var(--ink-dim); max-width: 720px; margin: 0 0 16px; }
+    .subtitle { color: var(--ink-dim); max-width: 760px; margin: 0 0 16px; }
     .meta {
       display: flex; flex-wrap: wrap; gap: 10px;
       color: var(--ink-dim); font-size: 0.92rem;
@@ -127,7 +128,7 @@
       border-radius: 14px;
       padding: 18px 18px 16px;
     }
-    .card.full { grid-column: span 12; }
+    .card.full  { grid-column: span 12; }
     .card.third { grid-column: span 4; }
     @media (max-width: 760px) {
       .card, .card.third { grid-column: span 12; }
@@ -153,9 +154,9 @@
       text-align: center;
       white-space: nowrap;
     }
-    .pill.done { color: var(--ok); border-color: rgba(110,231,167,0.35); background: rgba(110,231,167,0.08); }
-    .pill.wip  { color: var(--warn); border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.08); }
-    .pill.stub { color: var(--ink-dim); border-color: var(--border); background: rgba(255,255,255,0.03); }
+    .pill.done { color: var(--ok);      border-color: rgba(110,231,167,0.35); background: rgba(110,231,167,0.08); }
+    .pill.wip  { color: var(--warn);    border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.08); }
+    .pill.stub { color: var(--ink-dim); border-color: var(--border);          background: rgba(255,255,255,0.03); }
 
     .shots {
       display: grid;
@@ -165,7 +166,7 @@
     @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
     figure {
       margin: 0;
-      background: #0a1423;
+      background: #05101c;
       border: 1px solid var(--border);
       border-radius: 12px;
       overflow: hidden;
@@ -202,9 +203,34 @@
       padding: 1px 8px; border-radius: 999px;
       background: rgba(255,255,255,0.03);
     }
-    .tag.p1 { color: #ff9d9d; border-color: rgba(255,122,122,0.35); background: rgba(255,122,122,0.06); }
-    .tag.p2 { color: var(--warn); border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.06); }
+    .tag.p1 { color: #ff9d9d;        border-color: rgba(255,122,122,0.35); background: rgba(255,122,122,0.06); }
+    .tag.p2 { color: var(--warn);    border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.06); }
     .tag.p3 { color: var(--ink-dim); }
+
+    .controls {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    .controls th, .controls td {
+      text-align: left;
+      padding: 6px 10px;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+      font-size: 0.94rem;
+    }
+    .controls th { color: var(--ink-dim); font-weight: 600; }
+
+    pre.code {
+      overflow-x: auto;
+      background: #05101c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.9rem;
+      margin: 8px 0 0;
+    }
 
     footer {
       margin-top: 56px;
@@ -220,162 +246,261 @@
       <span class="eyebrow">Project Progress</span>
       <h1>AquaForge</h1>
       <p class="subtitle">
-        A voxel world prototype in Rust + Bevy. This page captures what's
-        currently playable, what's still scaffolded, and a prioritized list of
-        features to build next.
+        An underwater voxel sandbox in Rust + Bevy 0.18 &mdash; &ldquo;Minecraft,
+        but the whole world is a seafloor.&rdquo; This page captures what's
+        currently running, shows the seabed as it renders today, and keeps a
+        prioritized list of features to build next.
       </p>
       <div class="meta">
-        <span>Rust 2024 edition</span>
-        <span>Bevy 0.13</span>
-        <span>~345 LOC across 24 source files</span>
+        <span>Rust 1.89 / 2024 edition</span>
+        <span>Bevy 0.18</span>
+        <span>14 source files &middot; ~696 LOC</span>
         <span><a href="https://github.com/rageypeep/aquaforge">github.com/rageypeep/aquaforge</a></span>
       </div>
     </header>
 
     <section>
+      <h2>Screenshots</h2>
+      <div class="shots">
+        <figure>
+          <img src="screenshots/01_seabed_default.png"
+               alt="AquaForge default spawn: camera just under the water surface, looking across a sandy seabed dotted with coral, with blue underwater fog receding into the distance" />
+          <figcaption>
+            Default spawn: the camera sits just below the water surface,
+            looking down at the seabed. Exponential <code>DistanceFog</code>
+            tinted deep-blue fades the horizon, and the flat line across the
+            middle is the translucent sea-surface plane above the player.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/02_seabed_angle.png"
+               alt="AquaForge from a raised camera angle: the noise-generated seabed stretches away, with blocky sand terrain, dirt layers, and pink coral outcrops visible" />
+          <figcaption>
+            Wider vantage over the seabed. Terrain height comes from a tiny
+            value-noise + fBm generator, and the pink blocks are
+            <code>Coral</code> &mdash; one of six <code>BlockType</code>s
+            (Air, Stone, Sand, Dirt, Coral, Kelp).
+          </figcaption>
+        </figure>
+      </div>
+      <p class="dim">
+        Rendered with Bevy 0.18 PBR materials, a cool directional &ldquo;sun&rdquo;
+        light, a bright cyan ambient term, HDR + natural <code>Bloom</code>,
+        and exponential distance fog. Screenshots were captured on LLVMpipe
+        (software Vulkan) so colours are real but the framerate very much is
+        not.
+      </p>
+    </section>
+
+    <section>
       <h2>What's there today</h2>
       <div class="grid">
         <div class="card">
-          <h3>Voxel chunk &amp; meshing</h3>
+          <h3>Chunked voxel world</h3>
           <p class="dim">
-            A single 16&times;16&times;16 <code>Chunk</code> of blocks (Air,
-            Dirt, Stone, Sand) is generated with a simple modulo pattern. A
-            greedy-per-face mesher walks every block, emits a quad for each
-            exposed face, and tints vertices by block type. The resulting mesh
-            is rendered as one unlit <code>PbrBundle</code>.
+            The world is a fixed 6&times;2&times;6 grid of 16&sup3; chunks
+            (72 chunks, ~295k potential blocks). Each chunk is procedurally
+            filled from a 2D seabed height (value-noise + fBm, 4 octaves)
+            plus depth-based rules: stone deep down, a dirt layer, sand on
+            top, and sparse coral outcrops along the crest. Generation is
+            fully deterministic &mdash; the seed lives in <code>WORLD_SEED</code>.
           </p>
         </div>
         <div class="card">
-          <h3>Fly camera &amp; mouse-look</h3>
+          <h3>Face-culling mesher</h3>
           <p class="dim">
-            A 3D camera with a WASD+<kbd>Space</kbd>/<kbd>Shift</kbd> fly
-            controller and a pitch/yaw mouse-look that captures the cursor on
-            left-click and releases it with <kbd>Esc</kbd>. Movement is
-            rotation-relative, so "forward" follows where you're looking.
+            Each chunk emits a single <code>Mesh</code> with one quad per
+            block face that touches air (or kelp). Normals, per-block vertex
+            colours, UVs, and indices are all computed per chunk in
+            <code>Chunk::build_mesh</code>. No external voxel crate.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Underwater atmosphere</h3>
+          <p class="dim">
+            <code>AtmospherePlugin</code> sets a deep-blue
+            <code>ClearColor</code>, a cyan <code>GlobalAmbientLight</code>,
+            a directional sun (shadows off to stay cheap on low-end GPUs),
+            exponential <code>DistanceFog</code>, HDR + natural
+            <code>Bloom</code>, and a translucent sea-surface
+            <code>Plane3d</code> hovering at <code>WATER_LEVEL</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Fly-cam controls</h3>
+          <p class="dim">
+            <code>ControlsPlugin</code> attaches a <code>FlyCam</code> to
+            any <code>Camera3d</code>: WASD moves rotation-relative,
+            <kbd>Space</kbd>/<kbd>LShift</kbd> go up/down,
+            <kbd>LCtrl</kbd> is a 3&times; sprint, mouse controls yaw/pitch
+            while the cursor is locked, left-click grabs the cursor, and
+            <kbd>Esc</kbd> releases it.
           </p>
         </div>
         <div class="card full">
-          <h3>Module layout</h3>
+          <h3>Module layout (14 files, ~696 LOC)</h3>
           <ul class="status-list">
-            <li><span class="pill done">Working</span> <span><code>game/chunk.rs</code> &middot; <code>game/mod.rs</code> &mdash; chunk data + face-exposed mesher</span></li>
-            <li><span class="pill done">Working</span> <span><code>systems/input.rs</code> &mdash; fly camera, mouse capture, Esc to release</span></li>
-            <li><span class="pill done">Working</span> <span><code>main.rs</code> &mdash; <code>App</code> bootstrap, camera spawn, plugin wiring</span></li>
-            <li><span class="pill stub">Stub</span> <span><code>game/{player, physics, blocks, world, resources, creatures, crafting, structure, base_building}.rs</code></span></li>
-            <li><span class="pill stub">Stub</span> <span><code>rendering/{lighting, ui, shaders}.rs</code></span></li>
-            <li><span class="pill stub">Stub</span> <span><code>systems/{save_load, networking, audio, events}.rs</code></span></li>
-            <li><span class="pill stub">Stub</span> <span><code>utils/math.rs</code></span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>main.rs</code> &mdash; <code>App</code> bootstrap, window config,
+                plugin wiring (<code>AtmospherePlugin</code>, <code>GamePlugin</code>, <code>ControlsPlugin</code>)</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>game/blocks.rs</code> &mdash; <code>BlockType</code> enum, opacity
+                + per-type vertex colour</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>game/chunk.rs</code> &mdash; 16&sup3; chunk, seabed generator,
+                face-culling mesher</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>game/world.rs</code> &mdash; 6&times;2&times;6 chunk grid spawn,
+                shared <code>StandardMaterial</code>, water-level constant</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>rendering/mod.rs</code> &mdash; ambient + sun, fog, HDR + Bloom,
+                sea-surface plane</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>systems/input.rs</code> &mdash; fly-cam state, WASD, mouse-look,
+                cursor grab/release</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>utils/math.rs</code> + <code>utils/noise.rs</code> &mdash;
+                smoothstep / bilerp helpers and a dependency-free value-noise + fBm</span></li>
+            <li><span class="pill stub">Stub</span>
+              <span><code>rendering/{lighting, ui, shaders}.rs</code> &mdash; single doc
+                comment each, reserved for caustics, HUD, and custom
+                materials</span></li>
           </ul>
         </div>
       </div>
     </section>
 
     <section>
-      <h2>Screenshots</h2>
-      <div class="shots">
-        <figure>
-          <img src="screenshots/01_default_view.png" alt="AquaForge default camera view of a 16x16x16 chunk showing dirt, stone, and sand blocks" />
-          <figcaption>
-            Default spawn: camera at <code>(0, 25, 40)</code> looking at the
-            origin. Dirt floor (brown), sand (yellow) and stone (gray) form a
-            checker-like pattern from the modulo generator.
-          </figcaption>
-        </figure>
-        <figure>
-          <img src="screenshots/02_closer_view.png" alt="AquaForge chunk viewed from a slightly closer angle" />
-          <figcaption>
-            After moving forward with <kbd>W</kbd>: the face-culling mesher only
-            emits quads for air-adjacent faces, so the silhouette updates
-            cleanly as you fly around the chunk.
-          </figcaption>
-        </figure>
-      </div>
-      <p class="dim">
-        Note: materials are currently <code>unlit</code>, so there's no
-        shading yet &mdash; each block type is a flat color. Lighting,
-        skyboxes, and proper textures are all on the roadmap below.
-      </p>
-    </section>
-
-    <section>
       <h2>How to run it</h2>
-      <div class="card full">
-        <p class="dim">
-          The project uses Rust 2024 edition, so a recent stable toolchain is
-          required. On Linux you'll also need ALSA and udev development
-          headers for Bevy's audio/input backends.
-        </p>
-<pre style="overflow-x:auto;background:#0a1423;border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.9rem;margin:8px 0 0;"><code># one-time: system deps for Bevy on Ubuntu/Debian
-sudo apt-get install -y pkg-config libasound2-dev libudev-dev
+      <div class="grid">
+        <div class="card">
+          <h3>Controls</h3>
+          <table class="controls">
+            <tr><th>Input</th><th>Action</th></tr>
+            <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Move forward / left / back / right</td></tr>
+            <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Move up / down</td></tr>
+            <tr><td><kbd>LCtrl</kbd></td><td>Hold for 3&times; sprint</td></tr>
+            <tr><td>Mouse</td><td>Look around (after clicking the window)</td></tr>
+            <tr><td>Left&nbsp;click</td><td>Capture the cursor</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Release the cursor</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Build</h3>
+          <p class="dim">
+            Rust 1.89 is pinned via <code>rust-toolchain.toml</code>, so
+            <code>rustup</code> will fetch it automatically on first build.
+            On Linux Bevy also needs a handful of system libraries.
+          </p>
+<pre class="code"><code># one-time: Bevy system deps on Ubuntu/Debian
+sudo apt install pkg-config libwayland-dev libxkbcommon-dev \
+  libasound2-dev libudev-dev libx11-dev libxcursor-dev \
+  libxi-dev libxrandr-dev libxinerama-dev libgl1-mesa-dev
 
 # build &amp; run
-rustup update stable
 cargo run --release</code></pre>
+        </div>
       </div>
     </section>
 
     <section>
       <h2>Recommended next features</h2>
       <p class="dim">
-        Grouped roughly by priority. <span class="tag p1">P1</span> unlocks
-        core gameplay and makes the project feel like a game; <span class="tag p2">P2</span> adds depth and polish; <span class="tag p3">P3</span> are
-        longer-term stretch goals.
+        Grouped by area and tagged roughly by priority.
+        <span class="tag p1">P1</span> moves the project from &ldquo;pretty
+        scaffold&rdquo; to &ldquo;playable game&rdquo;,
+        <span class="tag p2">P2</span> adds depth and polish, and
+        <span class="tag p3">P3</span> are longer-term stretch goals.
       </p>
 
       <div class="grid">
         <div class="card">
-          <h3>World &amp; rendering</h3>
+          <h3>World &amp; generation</h3>
 
           <div class="rec">
-            <h4>Multi-chunk streaming world</h4>
+            <h4>Streaming chunk loader around the player</h4>
             <p class="dim">
-              Generalize <code>Chunk</code> into a <code>World</code> that
-              holds a <code>HashMap&lt;IVec3, Chunk&gt;</code>, streams chunks
-              in/out around the camera, and remeshes only dirty chunks.
-              Without this the world is hard-capped at 16&sup3; blocks.
+              Today's world is a hard-coded 6&times;2&times;6 grid spawned at
+              startup. Move that into a <code>HashMap&lt;IVec3, Chunk&gt;</code>,
+              load/unload chunks within a radius of the camera, and remesh
+              dirty chunks lazily. Needed before the world can feel
+              &ldquo;large&rdquo;.
             </p>
             <div class="tags"><span class="tag p1">P1</span><span class="tag">game/world.rs</span></div>
-          </div>
-
-          <div class="rec">
-            <h4>Procedural terrain (noise-based)</h4>
-            <p class="dim">
-              Replace the <code>(x+y+z) % n</code> placeholder with layered
-              Perlin/Simplex noise (e.g. the <code>noise</code> crate):
-              heightmap for terrain surface, a second octave for caves, and a
-              biome selector for block types.
-            </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/world.rs</span></div>
-          </div>
-
-          <div class="rec">
-            <h4>Lighting &amp; a sky</h4>
-            <p class="dim">
-              Turn off <code>unlit: true</code>, add a directional sun, a
-              <code>SkyboxBundle</code>/gradient sky, and cheap per-voxel
-              ambient occlusion baked into vertex colors. Even flat shading
-              dramatically improves readability.
-            </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/lighting.rs</span></div>
-          </div>
-
-          <div class="rec">
-            <h4>Block textures &amp; a texture atlas</h4>
-            <p class="dim">
-              Swap vertex colors for a single texture atlas (one image, UV
-              offsets per block face). This is the prerequisite for varied
-              materials, animated water, and foliage.
-            </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/shaders.rs</span></div>
           </div>
 
           <div class="rec">
             <h4>Greedy meshing</h4>
             <p class="dim">
-              The current mesher emits one quad per exposed face. A greedy
-              pass merges coplanar same-type faces into larger rectangles,
-              cutting triangle counts 5&ndash;10&times; on typical terrain.
+              <code>Chunk::build_mesh</code> currently emits one quad per
+              exposed face. A greedy pass that merges coplanar same-type
+              faces into larger rectangles typically cuts triangle counts by
+              5&ndash;10&times; on terrain like this, which matters a lot
+              once streaming lands.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">performance</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">performance</span><span class="tag">game/chunk.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Biomes &amp; feature placement</h4>
+            <p class="dim">
+              Layer a second noise channel for &ldquo;biome&rdquo; and pick
+              block palettes from it: kelp forests (tall
+              <code>BlockType::Kelp</code> columns), reef flats (dense
+              coral), sandy plains, rocky shelves. Scatter shipwrecks and
+              thermal vents as structure templates.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">game/world.rs</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Rendering &amp; atmosphere</h3>
+
+          <div class="rec">
+            <h4>Textured block atlas</h4>
+            <p class="dim">
+              Replace flat per-block vertex colours with a single texture
+              atlas (one image, UV offsets per face). Opens the door to
+              animated water, wavy kelp, varied stone, and actual normals.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/shaders.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Caustics &amp; god-rays</h4>
+            <p class="dim">
+              The underwater feel calls for caustics projected on the
+              seabed and volumetric light shafts descending from the sun.
+              Start with a screen-space post-process and an animated
+              projector texture; graduate to real volumetric lighting later.
+              This is literally what <code>rendering/lighting.rs</code> is
+              reserved for.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/lighting.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Animated water surface</h4>
+            <p class="dim">
+              The sea surface is a flat translucent
+              <code>Plane3d</code>. A custom material with scrolling normals
+              (plus an above/below-water tint swap) would turn it into a
+              proper horizon that you can look up at &mdash; and later,
+              breach.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/shaders.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Per-voxel AO + smooth normals</h4>
+            <p class="dim">
+              A cheap lookup-based ambient-occlusion term baked into vertex
+              colours (darken concave corners) massively improves blocky
+              readability, and costs zero GPU time. Pairs nicely with the
+              textured atlas.
+            </p>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">rendering/shaders.rs</span></div>
           </div>
         </div>
 
@@ -383,65 +508,59 @@ cargo run --release</code></pre>
           <h3>Gameplay</h3>
 
           <div class="rec">
-            <h4>Player controller with collision</h4>
+            <h4>Swimmer player with swept-AABB collision</h4>
             <p class="dim">
-              Replace the fly camera with a capsule player that has gravity,
-              jumping, and swept AABB-vs-voxel collision. This is the first
-              step toward an actual game loop.
+              Replace the fly-cam with a capsule &ldquo;diver&rdquo;: mild
+              gravity when out of water, buoyancy + drag underwater, swept
+              AABB-vs-voxel collision against the chunk grid, and an air /
+              oxygen budget that ticks down and forces you to surface.
+              First real step toward a game loop.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/player.rs</span><span class="tag">game/physics.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">new: game/player.rs</span><span class="tag">new: game/physics.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Raycast block break / place</h4>
+            <h4>Raycast break / place</h4>
             <p class="dim">
               Cast a ray from the camera each frame, highlight the targeted
-              block, and let left/right mouse remove or place blocks. Remesh
-              only the affected chunk(s).
+              block with a thin outline, and let left/right mouse remove or
+              place blocks. Only remesh the chunks actually touched by the
+              edit.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/blocks.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/blocks.rs</span><span class="tag">game/chunk.rs</span></div>
           </div>
 
           <div class="rec">
             <h4>Inventory &amp; hotbar HUD</h4>
             <p class="dim">
-              A simple <code>bevy_ui</code> hotbar with selected-slot
-              highlight, item counts, and keyboard <kbd>1</kbd>&ndash;<kbd>9</kbd>
-              selection. Feeds naturally into crafting later.
+              A <code>bevy_ui</code> hotbar with selected-slot highlight,
+              per-slot block icon + count, and <kbd>1</kbd>&ndash;<kbd>9</kbd>
+              selection. This is the natural first client of
+              <code>rendering/ui.rs</code>.
             </p>
             <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/ui.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Aquatic theme: water, buoyancy, fluids</h4>
+            <h4>The &ldquo;Forge&rdquo; centrepiece</h4>
             <p class="dim">
-              The project's name begs for it. Add a <code>Water</code> block
-              with a translucent material, a slow flood-fill propagation
-              system, and buoyancy on the player. Good excuse to build a
-              cellular-automata fluid module.
+              Lean into the project name: a placeable <code>Forge</code>
+              block that opens a crafting UI, consumes raw seafloor
+              resources (coral, stone, kelp fibre), and produces tools /
+              light sources / building parts. Recipes loadable from RON.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">on-theme</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">new: game/crafting.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Crafting &amp; base building</h4>
+            <h4>Creatures &amp; simple AI</h4>
             <p class="dim">
-              Flesh out the existing <code>crafting.rs</code> and
-              <code>base_building.rs</code> stubs: recipes defined in RON,
-              workbench block that opens a crafting UI, and a "forge" as the
-              namesake centerpiece that converts raw resources into tools.
+              Start with passive fish schools that wander through open
+              water using a small steering / flocking system, then add a
+              hostile critter with line-of-sight and a lunge attack. Good
+              feel-per-line-of-code ratio.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">game/crafting.rs</span><span class="tag">game/base_building.rs</span></div>
-          </div>
-
-          <div class="rec">
-            <h4>Creatures &amp; AI</h4>
-            <p class="dim">
-              Start with passive fish that wander through water blocks using
-              <code>big-brain</code> or simple state machines, then add a
-              hostile critter with line-of-sight. Low bar, high feel.
-            </p>
-            <div class="tags"><span class="tag p3">P3</span><span class="tag">game/creatures.rs</span></div>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">new: game/creatures.rs</span></div>
           </div>
         </div>
 
@@ -451,57 +570,46 @@ cargo run --release</code></pre>
           <div class="rec">
             <h4>Save / load</h4>
             <p class="dim">
-              Persist the world to disk with <code>bevy_asset</code> + RON
-              (or <code>bincode</code> for speed). Serialize only non-default
-              blocks per chunk and compress with <code>zstd</code>.
+              Persist only non-default (edited) blocks per chunk and
+              regenerate the rest from the seed. Serialize with
+              <code>bincode</code> + <code>zstd</code> for cheap, tiny save
+              files. Autosave on world unload.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">systems/save_load.rs</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">new: systems/save_load.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Audio pass</h4>
+            <h4>Underwater audio pass</h4>
             <p class="dim">
-              Footsteps keyed off the block the player is standing on,
-              ambient underwater loop, block-break/place SFX. Bevy's built-in
-              audio is sufficient to start.
+              Low-pass filtered ambient loop, muffled block-place / break
+              SFX, and bubble sounds when the player swims. Bevy's built-in
+              audio is plenty to start, and the current CI runs under ALSA
+              so there's no new system dep.
             </p>
-            <div class="tags"><span class="tag p3">P3</span><span class="tag">systems/audio.rs</span></div>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">new: systems/audio.rs</span></div>
           </div>
 
           <div class="rec">
             <h4>Multiplayer scaffolding</h4>
             <p class="dim">
-              Add an authoritative server using <code>bevy_renet</code> or
-              <code>lightyear</code>. Replicate player positions and block
-              edits first; world generation stays client-side but seeded.
+              An authoritative server with <code>bevy_renet</code> or
+              <code>lightyear</code>. Replicate player position and block
+              edits first; terrain stays client-side but deterministic from
+              the shared seed.
             </p>
-            <div class="tags"><span class="tag p3">P3</span><span class="tag">systems/networking.rs</span></div>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">new: systems/networking.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>README, controls, and CI polish</h4>
+            <h4>CI: clippy + fmt gates</h4>
             <p class="dim">
-              The repo currently has no <code>README.md</code>. A short one
-              with a controls cheatsheet, a screenshot, and build instructions
-              would massively lower the bar for new contributors. CI can also
-              add <code>cargo clippy --deny warnings</code> and
-              <code>cargo fmt --check</code>.
+              The current workflow runs <code>cargo check</code>,
+              <code>build</code>, and <code>test</code>. Add
+              <code>cargo fmt --check</code> and
+              <code>cargo clippy --all-targets -- -D warnings</code> so the
+              repo stays lint-clean as the scaffold fills in.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">docs</span></div>
-          </div>
-
-          <div class="rec">
-            <h4>Quick code-health cleanup</h4>
-            <p class="dim">
-              Three <code>pub struct GamePlugin;</code> types share the same
-              name across <code>game/</code>, <code>systems/</code>, and
-              <code>rendering/</code>. Rename them (e.g.
-              <code>SystemsPlugin</code>, <code>RenderingPlugin</code>) so
-              they can coexist when the stubs start registering systems. Also
-              drop the unused <code>i</code> counter in
-              <code>spawn_chunk_mesh</code>.
-            </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">refactor</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">.github/workflows/rust.yml</span></div>
           </div>
         </div>
       </div>
@@ -509,8 +617,8 @@ cargo run --release</code></pre>
 
     <footer>
       Generated for AquaForge &mdash; this page lives in
-      <code>docs/index.html</code> and can be opened directly in a browser or
-      served with <code>python3 -m http.server</code> from the repo root.
+      <code>docs/index.html</code>. Open it directly in a browser, or serve
+      the folder with <code>python3 -m http.server -d docs 8000</code>.
     </footer>
   </main>
 </body>
