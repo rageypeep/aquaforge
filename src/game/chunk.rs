@@ -11,7 +11,10 @@ use crate::utils::noise;
 pub const CHUNK_SIZE: usize = 16;
 
 /// A fixed-size 3D grid of blocks.
-#[derive(Clone)]
+///
+/// Chunks are attached as components to chunk entities so gameplay systems
+/// can mutate them and trigger mesh rebuilds.
+#[derive(Component, Clone)]
 pub struct Chunk {
     /// Block data indexed as `blocks[x][y][z]`.
     pub blocks: Vec<BlockType>,

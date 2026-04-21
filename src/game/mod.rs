@@ -4,12 +4,14 @@ use bevy::prelude::*;
 
 pub mod blocks;
 pub mod chunk;
+pub mod chunk_map;
+pub mod edit;
 pub mod world;
 
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(world::WorldPlugin);
+        app.add_plugins((world::WorldPlugin, edit::ChunkEditPlugin));
     }
 }
