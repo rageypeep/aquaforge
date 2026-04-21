@@ -16,7 +16,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Install Bevy Linux dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          pkg-config libasound2-dev libudev-dev \
+          libwayland-dev libxkbcommon-dev \
+          libx11-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev \
+          libgl1-mesa-dev
+
+    - name: Install Rust toolchain
+      run: |
+        rustup update stable
+        rustup default stable
+        rustc --version
+        cargo --version
+
     - name: Build
       run: cargo build --verbose
+
     - name: Run tests
       run: cargo test --verbose
