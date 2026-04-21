@@ -3,6 +3,7 @@
 use bevy::prelude::*;
 
 use super::chunk::{CHUNK_SIZE, Chunk};
+use super::chunk_map::ChunkMap;
 
 /// Number of chunks laid out along each horizontal axis, centred on the origin.
 pub const WORLD_CHUNKS_XZ: i32 = 6;
@@ -23,7 +24,8 @@ pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_world);
+        app.init_resource::<ChunkMap>()
+            .add_systems(Startup, spawn_world);
     }
 }
 
@@ -31,6 +33,7 @@ fn spawn_world(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut chunk_map: ResMut<ChunkMap>,
 ) {
     let block_material = materials.add(StandardMaterial {
         base_color: Color::WHITE,
@@ -54,13 +57,17 @@ fn spawn_world(
                     (cz * CHUNK_SIZE as i32) as f32,
                 );
 
-                commands.spawn((
-                    Mesh3d(meshes.add(mesh)),
-                    MeshMaterial3d(block_material.clone()),
-                    Transform::from_translation(origin),
-                    ChunkTag(chunk_pos),
-                    Name::new(format!("Chunk ({cx},{cy},{cz})")),
-                ));
+                let entity = commands
+                    .spawn((
+                        Mesh3d(meshes.add(mesh)),
+                        MeshMaterial3d(block_material.clone()),
+                        Transform::from_translation(origin),
+                        ChunkTag(chunk_pos),
+                        chunk,
+                        Name::new(format!("Chunk ({cx},{cy},{cz})")),
+                    ))
+                    .id();
+                chunk_map.insert(chunk_pos, entity);
             }
         }
     }
