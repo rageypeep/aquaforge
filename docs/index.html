@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AquaForge — Progress</title>
+  <style>
+    :root {
+      --bg: #0b1420;
+      --bg-2: #0f1c2e;
+      --panel: #13263c;
+      --panel-2: #102032;
+      --ink: #e7eef7;
+      --ink-dim: #9db3c7;
+      --accent: #57d0ff;
+      --accent-2: #7fe3c7;
+      --warn: #ffcc66;
+      --danger: #ff7a7a;
+      --ok: #6ee7a7;
+      --border: #1f3553;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+                   "Helvetica Neue", Arial, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #143759 0%, transparent 60%),
+        radial-gradient(900px 500px at 110% 10%, #0d2a3d 0%, transparent 55%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 100%);
+      background-attachment: fixed;
+      line-height: 1.55;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code, kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.92em;
+    }
+    kbd {
+      background: #0b1a2b;
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08);
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 40px 24px 80px; }
+
+    header.hero {
+      position: relative;
+      padding: 56px 32px 44px;
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(87,208,255,0.10), rgba(127,227,199,0.06)),
+        linear-gradient(180deg, #0f233a 0%, #0a1828 100%);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    header.hero::before {
+      content: "";
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.25), transparent 40%),
+        radial-gradient(2px 2px at 80% 70%, rgba(127,227,199,0.3), transparent 40%),
+        radial-gradient(1.5px 1.5px at 60% 40%, rgba(87,208,255,0.3), transparent 40%);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.78rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      padding: 4px 10px;
+      border: 1px solid rgba(127,227,199,0.3);
+      border-radius: 999px;
+      background: rgba(127,227,199,0.06);
+    }
+    h1 {
+      font-size: clamp(2.2rem, 4vw, 3.2rem);
+      margin: 14px 0 8px;
+      letter-spacing: -0.01em;
+      background: linear-gradient(90deg, #cdebff 0%, #7fe3c7 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle { color: var(--ink-dim); max-width: 720px; margin: 0 0 16px; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      color: var(--ink-dim); font-size: 0.92rem;
+    }
+    .meta span {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      padding: 4px 10px; border-radius: 999px;
+    }
+
+    section { margin-top: 44px; }
+    h2 {
+      font-size: 1.5rem;
+      margin: 0 0 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    h2::before {
+      content: "";
+      width: 10px; height: 10px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(87,208,255,0.6);
+    }
+    h3 { margin: 18px 0 8px; font-size: 1.08rem; }
+    p { margin: 10px 0; color: var(--ink); }
+    p.dim { color: var(--ink-dim); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+    .card {
+      grid-column: span 6;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+    }
+    .card.full { grid-column: span 12; }
+    .card.third { grid-column: span 4; }
+    @media (max-width: 760px) {
+      .card, .card.third { grid-column: span 12; }
+    }
+
+    .status-list { list-style: none; padding: 0; margin: 8px 0 0; }
+    .status-list li {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.06);
+    }
+    .status-list li:last-child { border-bottom: none; }
+    .pill {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .pill.done { color: var(--ok); border-color: rgba(110,231,167,0.35); background: rgba(110,231,167,0.08); }
+    .pill.wip  { color: var(--warn); border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.08); }
+    .pill.stub { color: var(--ink-dim); border-color: var(--border); background: rgba(255,255,255,0.03); }
+
+    .shots {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 760px) { .shots { grid-template-columns: 1fr; } }
+    figure {
+      margin: 0;
+      background: #0a1423;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #000;
+    }
+    figcaption {
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      color: var(--ink-dim);
+      border-top: 1px solid var(--border);
+    }
+
+    .rec {
+      border-left: 3px solid var(--accent);
+      padding: 10px 14px;
+      background: rgba(87,208,255,0.04);
+      border-radius: 0 10px 10px 0;
+      margin: 10px 0;
+    }
+    .rec h4 { margin: 0 0 4px; font-size: 1rem; }
+    .rec .tags {
+      margin-top: 6px;
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .tag {
+      font-size: 0.72rem;
+      color: var(--ink-dim);
+      border: 1px solid var(--border);
+      padding: 1px 8px; border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+    }
+    .tag.p1 { color: #ff9d9d; border-color: rgba(255,122,122,0.35); background: rgba(255,122,122,0.06); }
+    .tag.p2 { color: var(--warn); border-color: rgba(255,204,102,0.35); background: rgba(255,204,102,0.06); }
+    .tag.p3 { color: var(--ink-dim); }
+
+    footer {
+      margin-top: 56px;
+      color: var(--ink-dim);
+      font-size: 0.88rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <span class="eyebrow">Project Progress</span>
+      <h1>AquaForge</h1>
+      <p class="subtitle">
+        A voxel world prototype in Rust + Bevy. This page captures what's
+        currently playable, what's still scaffolded, and a prioritized list of
+        features to build next.
+      </p>
+      <div class="meta">
+        <span>Rust 2024 edition</span>
+        <span>Bevy 0.13</span>
+        <span>~345 LOC across 24 source files</span>
+        <span><a href="https://github.com/rageypeep/aquaforge">github.com/rageypeep/aquaforge</a></span>
+      </div>
+    </header>
+
+    <section>
+      <h2>What's there today</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Voxel chunk &amp; meshing</h3>
+          <p class="dim">
+            A single 16&times;16&times;16 <code>Chunk</code> of blocks (Air,
+            Dirt, Stone, Sand) is generated with a simple modulo pattern. A
+            greedy-per-face mesher walks every block, emits a quad for each
+            exposed face, and tints vertices by block type. The resulting mesh
+            is rendered as one unlit <code>PbrBundle</code>.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Fly camera &amp; mouse-look</h3>
+          <p class="dim">
+            A 3D camera with a WASD+<kbd>Space</kbd>/<kbd>Shift</kbd> fly
+            controller and a pitch/yaw mouse-look that captures the cursor on
+            left-click and releases it with <kbd>Esc</kbd>. Movement is
+            rotation-relative, so "forward" follows where you're looking.
+          </p>
+        </div>
+        <div class="card full">
+          <h3>Module layout</h3>
+          <ul class="status-list">
+            <li><span class="pill done">Working</span> <span><code>game/chunk.rs</code> &middot; <code>game/mod.rs</code> &mdash; chunk data + face-exposed mesher</span></li>
+            <li><span class="pill done">Working</span> <span><code>systems/input.rs</code> &mdash; fly camera, mouse capture, Esc to release</span></li>
+            <li><span class="pill done">Working</span> <span><code>main.rs</code> &mdash; <code>App</code> bootstrap, camera spawn, plugin wiring</span></li>
+            <li><span class="pill stub">Stub</span> <span><code>game/{player, physics, blocks, world, resources, creatures, crafting, structure, base_building}.rs</code></span></li>
+            <li><span class="pill stub">Stub</span> <span><code>rendering/{lighting, ui, shaders}.rs</code></span></li>
+            <li><span class="pill stub">Stub</span> <span><code>systems/{save_load, networking, audio, events}.rs</code></span></li>
+            <li><span class="pill stub">Stub</span> <span><code>utils/math.rs</code></span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Screenshots</h2>
+      <div class="shots">
+        <figure>
+          <img src="screenshots/01_default_view.png" alt="AquaForge default camera view of a 16x16x16 chunk showing dirt, stone, and sand blocks" />
+          <figcaption>
+            Default spawn: camera at <code>(0, 25, 40)</code> looking at the
+            origin. Dirt floor (brown), sand (yellow) and stone (gray) form a
+            checker-like pattern from the modulo generator.
+          </figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/02_closer_view.png" alt="AquaForge chunk viewed from a slightly closer angle" />
+          <figcaption>
+            After moving forward with <kbd>W</kbd>: the face-culling mesher only
+            emits quads for air-adjacent faces, so the silhouette updates
+            cleanly as you fly around the chunk.
+          </figcaption>
+        </figure>
+      </div>
+      <p class="dim">
+        Note: materials are currently <code>unlit</code>, so there's no
+        shading yet &mdash; each block type is a flat color. Lighting,
+        skyboxes, and proper textures are all on the roadmap below.
+      </p>
+    </section>
+
+    <section>
+      <h2>How to run it</h2>
+      <div class="card full">
+        <p class="dim">
+          The project uses Rust 2024 edition, so a recent stable toolchain is
+          required. On Linux you'll also need ALSA and udev development
+          headers for Bevy's audio/input backends.
+        </p>
+<pre style="overflow-x:auto;background:#0a1423;border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:0.9rem;margin:8px 0 0;"><code># one-time: system deps for Bevy on Ubuntu/Debian
+sudo apt-get install -y pkg-config libasound2-dev libudev-dev
+
+# build &amp; run
+rustup update stable
+cargo run --release</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>Recommended next features</h2>
+      <p class="dim">
+        Grouped roughly by priority. <span class="tag p1">P1</span> unlocks
+        core gameplay and makes the project feel like a game; <span class="tag p2">P2</span> adds depth and polish; <span class="tag p3">P3</span> are
+        longer-term stretch goals.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>World &amp; rendering</h3>
+
+          <div class="rec">
+            <h4>Multi-chunk streaming world</h4>
+            <p class="dim">
+              Generalize <code>Chunk</code> into a <code>World</code> that
+              holds a <code>HashMap&lt;IVec3, Chunk&gt;</code>, streams chunks
+              in/out around the camera, and remeshes only dirty chunks.
+              Without this the world is hard-capped at 16&sup3; blocks.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/world.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Procedural terrain (noise-based)</h4>
+            <p class="dim">
+              Replace the <code>(x+y+z) % n</code> placeholder with layered
+              Perlin/Simplex noise (e.g. the <code>noise</code> crate):
+              heightmap for terrain surface, a second octave for caves, and a
+              biome selector for block types.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/world.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Lighting &amp; a sky</h4>
+            <p class="dim">
+              Turn off <code>unlit: true</code>, add a directional sun, a
+              <code>SkyboxBundle</code>/gradient sky, and cheap per-voxel
+              ambient occlusion baked into vertex colors. Even flat shading
+              dramatically improves readability.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/lighting.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Block textures &amp; a texture atlas</h4>
+            <p class="dim">
+              Swap vertex colors for a single texture atlas (one image, UV
+              offsets per block face). This is the prerequisite for varied
+              materials, animated water, and foliage.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/shaders.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Greedy meshing</h4>
+            <p class="dim">
+              The current mesher emits one quad per exposed face. A greedy
+              pass merges coplanar same-type faces into larger rectangles,
+              cutting triangle counts 5&ndash;10&times; on typical terrain.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">performance</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Gameplay</h3>
+
+          <div class="rec">
+            <h4>Player controller with collision</h4>
+            <p class="dim">
+              Replace the fly camera with a capsule player that has gravity,
+              jumping, and swept AABB-vs-voxel collision. This is the first
+              step toward an actual game loop.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/player.rs</span><span class="tag">game/physics.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Raycast block break / place</h4>
+            <p class="dim">
+              Cast a ray from the camera each frame, highlight the targeted
+              block, and let left/right mouse remove or place blocks. Remesh
+              only the affected chunk(s).
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/blocks.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Inventory &amp; hotbar HUD</h4>
+            <p class="dim">
+              A simple <code>bevy_ui</code> hotbar with selected-slot
+              highlight, item counts, and keyboard <kbd>1</kbd>&ndash;<kbd>9</kbd>
+              selection. Feeds naturally into crafting later.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/ui.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Aquatic theme: water, buoyancy, fluids</h4>
+            <p class="dim">
+              The project's name begs for it. Add a <code>Water</code> block
+              with a translucent material, a slow flood-fill propagation
+              system, and buoyancy on the player. Good excuse to build a
+              cellular-automata fluid module.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">on-theme</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Crafting &amp; base building</h4>
+            <p class="dim">
+              Flesh out the existing <code>crafting.rs</code> and
+              <code>base_building.rs</code> stubs: recipes defined in RON,
+              workbench block that opens a crafting UI, and a "forge" as the
+              namesake centerpiece that converts raw resources into tools.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">game/crafting.rs</span><span class="tag">game/base_building.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Creatures &amp; AI</h4>
+            <p class="dim">
+              Start with passive fish that wander through water blocks using
+              <code>big-brain</code> or simple state machines, then add a
+              hostile critter with line-of-sight. Low bar, high feel.
+            </p>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">game/creatures.rs</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Systems &amp; infrastructure</h3>
+
+          <div class="rec">
+            <h4>Save / load</h4>
+            <p class="dim">
+              Persist the world to disk with <code>bevy_asset</code> + RON
+              (or <code>bincode</code> for speed). Serialize only non-default
+              blocks per chunk and compress with <code>zstd</code>.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">systems/save_load.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Audio pass</h4>
+            <p class="dim">
+              Footsteps keyed off the block the player is standing on,
+              ambient underwater loop, block-break/place SFX. Bevy's built-in
+              audio is sufficient to start.
+            </p>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">systems/audio.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Multiplayer scaffolding</h4>
+            <p class="dim">
+              Add an authoritative server using <code>bevy_renet</code> or
+              <code>lightyear</code>. Replicate player positions and block
+              edits first; world generation stays client-side but seeded.
+            </p>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">systems/networking.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>README, controls, and CI polish</h4>
+            <p class="dim">
+              The repo currently has no <code>README.md</code>. A short one
+              with a controls cheatsheet, a screenshot, and build instructions
+              would massively lower the bar for new contributors. CI can also
+              add <code>cargo clippy --deny warnings</code> and
+              <code>cargo fmt --check</code>.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">docs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Quick code-health cleanup</h4>
+            <p class="dim">
+              Three <code>pub struct GamePlugin;</code> types share the same
+              name across <code>game/</code>, <code>systems/</code>, and
+              <code>rendering/</code>. Rename them (e.g.
+              <code>SystemsPlugin</code>, <code>RenderingPlugin</code>) so
+              they can coexist when the stubs start registering systems. Also
+              drop the unused <code>i</code> counter in
+              <code>spawn_chunk_mesh</code>.
+            </p>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">refactor</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Generated for AquaForge &mdash; this page lives in
+      <code>docs/index.html</code> and can be opened directly in a browser or
+      served with <code>python3 -m http.server</code> from the repo root.
+    </footer>
+  </main>
+</body>
+</html>
