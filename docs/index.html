@@ -254,7 +254,8 @@
       <div class="meta">
         <span>Rust 1.89 / 2024 edition</span>
         <span>Bevy 0.18</span>
-        <span>14 source files &middot; ~696 LOC</span>
+        <span>17 source files &middot; ~1.7k LOC</span>
+        <span>Last updated: April 2026</span>
         <span><a href="https://github.com/rageypeep/aquaforge">github.com/rageypeep/aquaforge</a></span>
       </div>
     </header>
@@ -284,12 +285,51 @@
         </figure>
       </div>
       <p class="dim">
-        Rendered with Bevy 0.18 PBR materials, a cool directional &ldquo;sun&rdquo;
-        light, a bright cyan ambient term, HDR + natural <code>Bloom</code>,
-        and exponential distance fog. Screenshots were captured on LLVMpipe
-        (software Vulkan) so colours are real but the framerate very much is
-        not.
+        Rendered with Bevy 0.18 PBR materials, cascaded shadows, HDR +
+        natural <code>Bloom</code>, exponential distance fog, a sinusoidal
+        vertex-displaced water surface, per-vertex ambient occlusion, and
+        a greedy coplanar-face mesher. Screenshots were captured on
+        LLVMpipe (software Vulkan) so colours are real but the framerate
+        very much is not.
       </p>
+    </section>
+
+    <section>
+      <h2>Timeline</h2>
+      <div class="card full">
+        <ul class="status-list">
+          <li><span class="pill done">PR #3</span>
+            <span>Underwater voxel scaffold on Bevy 0.18 &mdash; chunked 16&sup3; world,
+              face-culling mesher, fly-cam, blue fog, translucent sea-surface plane.</span></li>
+          <li><span class="pill done">PR #4</span>
+            <span>This progress page (<code>docs/index.html</code>) with screenshots and
+              a prioritised backlog.</span></li>
+          <li><span class="pill done">PR #6</span>
+            <span>Voxel DDA raycast, yellow wireframe target highlight, left-click to
+              break, right-click to place, <kbd>1</kbd>..<kbd>5</kbd> to cycle block
+              type.</span></li>
+          <li><span class="pill done">PR #8</span>
+            <span>PBR lighting rig: cascaded shadows, tonemapping, tuned sun/ambient
+              brightness. Dropped the duplicate plugin + set <code>Msaa::Off</code>
+              to fix a runtime panic.</span></li>
+          <li><span class="pill done">PR #9</span>
+            <span>Per-vertex ambient occlusion baked into the chunk mesher &mdash;
+              darkens concave voxel corners with zero GPU cost.</span></li>
+          <li><span class="pill done">PR #10</span>
+            <span>Greedy AO-aware mesher. Replaces the per-face sweep with merged
+              coplanar same-type quads, cutting triangle counts dramatically on
+              flat terrain.</span></li>
+          <li><span class="pill done">PR #11</span>
+            <span>Animated water surface via an <code>ExtendedMaterial</code>-wrapped
+              <code>StandardMaterial</code> with a custom vertex shader
+              (<code>assets/shaders/water.wgsl</code>).</span></li>
+          <li><span class="pill wip">PR #7</span>
+            <span>Inventory-backed hotbar HUD &mdash; 5 slots at bottom centre with
+              per-slot icons, counts, and yellow-bordered selection. Break deposits
+              into the matching slot; place consumes one unit only after a confirmed
+              <code>set_block</code>. <em>Open, awaiting merge.</em></span></li>
+        </ul>
+      </div>
     </section>
 
     <section>
@@ -338,7 +378,7 @@
           </p>
         </div>
         <div class="card full">
-          <h3>Module layout (14 files, ~696 LOC)</h3>
+          <h3>Module layout (17 files, ~1.7k LOC)</h3>
           <ul class="status-list">
             <li><span class="pill done">Working</span>
               <span><code>main.rs</code> &mdash; <code>App</code> bootstrap, window config,
@@ -348,7 +388,15 @@
                 + per-type vertex colour</span></li>
             <li><span class="pill done">Working</span>
               <span><code>game/chunk.rs</code> &mdash; 16&sup3; chunk, seabed generator,
-                face-culling mesher</span></li>
+                greedy AO-aware mesher</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>game/chunk_map.rs</code> &mdash;
+                <code>HashMap&lt;IVec3, Entity&gt;</code> of loaded chunks, helpers
+                for world-to-chunk coordinate conversion</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>game/edit.rs</code> &mdash; voxel DDA raycast, wireframe target
+                highlight, left/right-click break &amp; place,
+                <kbd>1</kbd>..<kbd>5</kbd> to cycle held block</span></li>
             <li><span class="pill done">Working</span>
               <span><code>game/world.rs</code> &mdash; 6&times;2&times;6 chunk grid spawn,
                 shared <code>StandardMaterial</code>, water-level constant</span></li>
@@ -356,14 +404,21 @@
               <span><code>rendering/mod.rs</code> &mdash; ambient + sun, fog, HDR + Bloom,
                 sea-surface plane</span></li>
             <li><span class="pill done">Working</span>
+              <span><code>rendering/lighting.rs</code> &mdash; PBR rig with cascaded
+                shadows and tonemapping</span></li>
+            <li><span class="pill done">Working</span>
+              <span><code>rendering/water.rs</code> + <code>assets/shaders/water.wgsl</code>
+                &mdash; animated water via <code>ExtendedMaterial</code> vertex
+                displacement</span></li>
+            <li><span class="pill done">Working</span>
               <span><code>systems/input.rs</code> &mdash; fly-cam state, WASD, mouse-look,
                 cursor grab/release</span></li>
             <li><span class="pill done">Working</span>
               <span><code>utils/math.rs</code> + <code>utils/noise.rs</code> &mdash;
                 smoothstep / bilerp helpers and a dependency-free value-noise + fBm</span></li>
             <li><span class="pill stub">Stub</span>
-              <span><code>rendering/{lighting, ui, shaders}.rs</code> &mdash; single doc
-                comment each, reserved for caustics, HUD, and custom
+              <span><code>rendering/{ui, shaders}.rs</code> &mdash; single doc comment
+                each, reserved for HUD widgets and future custom
                 materials</span></li>
           </ul>
         </div>
@@ -381,7 +436,9 @@
             <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Move up / down</td></tr>
             <tr><td><kbd>LCtrl</kbd></td><td>Hold for 3&times; sprint</td></tr>
             <tr><td>Mouse</td><td>Look around (after clicking the window)</td></tr>
-            <tr><td>Left&nbsp;click</td><td>Capture the cursor</td></tr>
+            <tr><td>Left&nbsp;click</td><td>Grab cursor &middot; after grab, break the highlighted block</td></tr>
+            <tr><td>Right&nbsp;click</td><td>Place the held block on the highlighted face</td></tr>
+            <tr><td><kbd>1</kbd>&ndash;<kbd>5</kbd></td><td>Cycle held block (Stone / Sand / Dirt / Coral / Kelp)</td></tr>
             <tr><td><kbd>Esc</kbd></td><td>Release the cursor</td></tr>
           </table>
         </div>
@@ -430,13 +487,13 @@ cargo run --release</code></pre>
           </div>
 
           <div class="rec">
-            <h4>Greedy meshing</h4>
+            <h4>Greedy meshing <span class="pill done">Shipped in #10</span></h4>
             <p class="dim">
-              <code>Chunk::build_mesh</code> currently emits one quad per
-              exposed face. A greedy pass that merges coplanar same-type
-              faces into larger rectangles typically cuts triangle counts by
-              5&ndash;10&times; on terrain like this, which matters a lot
-              once streaming lands.
+              <code>Chunk::build_mesh</code> now runs a greedy sweep that
+              merges coplanar same-type faces into rectangles, cutting
+              triangle counts by ~5&ndash;10&times; on flat terrain. The
+              mesher also preserves per-vertex AO when merging, so the
+              savings don't cost visual quality.
             </p>
             <div class="tags"><span class="tag p1">P1</span><span class="tag">performance</span><span class="tag">game/chunk.rs</span></div>
           </div>
@@ -468,39 +525,49 @@ cargo run --release</code></pre>
           </div>
 
           <div class="rec">
-            <h4>Caustics &amp; god-rays</h4>
+            <h4>PBR lighting rig <span class="pill done">Shipped in #8</span></h4>
             <p class="dim">
-              The underwater feel calls for caustics projected on the
-              seabed and volumetric light shafts descending from the sun.
-              Start with a screen-space post-process and an animated
-              projector texture; graduate to real volumetric lighting later.
-              This is literally what <code>rendering/lighting.rs</code> is
-              reserved for.
+              Cascaded shadows, tuned sun + ambient brightness, and
+              tonemapping are now live in
+              <code>rendering/lighting.rs</code>. Caustics + volumetric
+              god-rays remain the next logical step.
             </p>
             <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/lighting.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Animated water surface</h4>
+            <h4>Animated water surface <span class="pill done">Shipped in #11</span></h4>
             <p class="dim">
-              The sea surface is a flat translucent
-              <code>Plane3d</code>. A custom material with scrolling normals
-              (plus an above/below-water tint swap) would turn it into a
-              proper horizon that you can look up at &mdash; and later,
-              breach.
+              The sea surface now uses an <code>ExtendedMaterial</code>
+              wrapper over <code>StandardMaterial</code> with a custom WGSL
+              vertex shader that sums a few sinusoids and emits an
+              analytically-derived normal, so PBR specular picks up live
+              highlights as the waves roll.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/shaders.rs</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/water.rs</span><span class="tag">assets/shaders/water.wgsl</span></div>
           </div>
 
           <div class="rec">
-            <h4>Per-voxel AO + smooth normals</h4>
+            <h4>Per-voxel AO + smooth normals <span class="pill done">Shipped in #9</span></h4>
             <p class="dim">
-              A cheap lookup-based ambient-occlusion term baked into vertex
-              colours (darken concave corners) massively improves blocky
-              readability, and costs zero GPU time. Pairs nicely with the
-              textured atlas.
+              A lookup-based ambient-occlusion term is now baked into
+              vertex colours during meshing, darkening concave voxel
+              corners at zero GPU cost. Next step is smooth normals on the
+              merged greedy quads.
             </p>
-            <div class="tags"><span class="tag p3">P3</span><span class="tag">rendering/shaders.rs</span></div>
+            <div class="tags"><span class="tag p3">P3</span><span class="tag">game/chunk.rs</span></div>
+          </div>
+
+          <div class="rec">
+            <h4>Caustics &amp; god-rays</h4>
+            <p class="dim">
+              The next underwater-atmosphere feature: caustics projected on
+              the seabed plus volumetric light shafts descending from the
+              sun. Start with a screen-space post-process and an animated
+              projector texture; graduate to real volumetric lighting
+              later.
+            </p>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/lighting.rs</span></div>
           </div>
         </div>
 
@@ -520,25 +587,27 @@ cargo run --release</code></pre>
           </div>
 
           <div class="rec">
-            <h4>Raycast break / place</h4>
+            <h4>Raycast break / place <span class="pill done">Shipped in #6</span></h4>
             <p class="dim">
-              Cast a ray from the camera each frame, highlight the targeted
-              block with a thin outline, and let left/right mouse remove or
-              place blocks. Only remesh the chunks actually touched by the
-              edit.
+              A voxel DDA raycast runs from the camera each frame. The hit
+              block gets a yellow wireframe outline; left-click breaks the
+              block (setting it to <code>Air</code>) and right-click places
+              a new block against the hit face. Only the chunks actually
+              touched by the edit are remeshed.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/blocks.rs</span><span class="tag">game/chunk.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">game/edit.rs</span><span class="tag">game/chunk_map.rs</span></div>
           </div>
 
           <div class="rec">
-            <h4>Inventory &amp; hotbar HUD</h4>
+            <h4>Inventory &amp; hotbar HUD <span class="pill wip">In flight, PR #7</span></h4>
             <p class="dim">
-              A <code>bevy_ui</code> hotbar with selected-slot highlight,
-              per-slot block icon + count, and <kbd>1</kbd>&ndash;<kbd>9</kbd>
-              selection. This is the natural first client of
-              <code>rendering/ui.rs</code>.
+              A <code>bevy_ui</code> hotbar at the bottom centre with per-slot
+              block icon + count and a yellow-bordered selection. Breaks
+              deposit into the matching slot; placement consumes one unit
+              only after a confirmed <code>set_block</code>, so edge-of-world
+              failures never silently drain stock.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/ui.rs</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">new: game/inventory.rs</span></div>
           </div>
 
           <div class="rec">
@@ -619,6 +688,8 @@ cargo run --release</code></pre>
       Generated for AquaForge &mdash; this page lives in
       <code>docs/index.html</code>. Open it directly in a browser, or serve
       the folder with <code>python3 -m http.server -d docs 8000</code>.
+      AI coding assistants: see <code>AGENTS.md</code> at the repo root for
+      architecture and conventions.
     </footer>
   </main>
 </body>
