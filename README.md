@@ -12,14 +12,20 @@ terrain and a free-flying camera.
 
 ## Controls
 
-| Input              | Action                                  |
-|--------------------|-----------------------------------------|
-| `W` / `A` / `S` / `D` | Move forward/left/back/right         |
-| `Space` / `LShift` | Move up / down                          |
-| `LCtrl`            | Hold to move 3× faster                  |
-| Mouse              | Look around (after clicking the window) |
-| `Left Click`       | Capture the mouse                       |
-| `Esc`              | Release the mouse                       |
+| Input              | Action                                          |
+|--------------------|-------------------------------------------------|
+| `W` / `A` / `S` / `D` | Swim forward/left/back/right                 |
+| `Space` / `LShift` | Kick up / down                                  |
+| `LCtrl`            | Hold to swim 2× faster                          |
+| Mouse              | Look around (after clicking the window)         |
+| `Left Click`       | Capture the mouse / break the targeted block    |
+| `Right Click`      | Place from the active hotbar slot               |
+| `1`–`6`            | Select hotbar slot                              |
+| `Esc`              | Release the mouse                               |
+
+The camera is a real swimmer body now: it collides with terrain, drains
+an oxygen meter while submerged, and refills it once the head breaches
+the surface.
 
 ## Running
 
@@ -48,7 +54,8 @@ src/
 ├── rendering/
 │   └── mod.rs          # Underwater fog, ambient, camera, sea surface
 ├── systems/
-│   └── input.rs        # Fly-cam: WASD, mouse look, cursor grab/release
+│   ├── input.rs        # Cursor grab / release
+│   └── swimmer.rs      # Swimmer controller, swept-AABB collision, oxygen
 └── utils/
     ├── math.rs         # smoothstep / bilerp helpers
     └── noise.rs        # Tiny value-noise + fBm (no external deps)
@@ -58,8 +65,7 @@ src/
 
 The base intentionally leaves room for:
 
-- Block placement & destruction (ray-cast from the camera)
-- Proper swim physics (buoyancy, drag, air budget)
 - Biomes (kelp forests, reefs, thermal vents)
-- Infinite chunk streaming around the player
 - Underwater post-processing (caustics, god-rays, volumetric lighting)
+- Drowning damage once the oxygen meter empties
+- Buoyancy (gear-weighted sink / float)
