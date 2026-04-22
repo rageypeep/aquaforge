@@ -74,8 +74,10 @@ aquaforge/
 │   ├── rendering/
 │   │   ├── mod.rs           # AtmospherePlugin: ambient, fog, HDR, sea plane
 │   │   ├── atlas.rs         # Procedural block texture atlas (BlockAtlasPlugin)
+│   │   ├── caustics.rs      # ChunkMaterial = ExtendedMaterial<Standard, Caustics> (PR #17)
+│   │   ├── god_rays.rs      # Fullscreen post-process Node in Core3d graph (PR #17)
 │   │   ├── headlights.rs    # Toggleable sub-style spot-light headlights
-│   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping
+│   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping, SunLight marker
 │   │   ├── water.rs         # ExtendedMaterial + MaterialPlugin for water
 │   │   ├── shaders.rs       # (stub, reserved for future custom materials)
 │   │   └── ui.rs            # Oxygen HUD meter (HudPlugin)
