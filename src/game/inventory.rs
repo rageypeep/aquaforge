@@ -267,3 +267,140 @@ fn refresh_hotbar_ui(
         text.0 = format!("{}", inventory.slots[count.0].count);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn counts(inv: &Inventory) -> [u32; HOTBAR_SLOTS] {
+        let mut out = [0u32; HOTBAR_SLOTS];
+        for (i, slot) in inv.slots.iter().enumerate() {
+            out[i] = slot.count;
+        }
+        out
+    }
+
+    #[test]
+    fn default_inventory_has_expected_layout() {
+        let inv = Inventory::default();
+        assert_eq!(inv.selected, 0);
+        assert_eq!(inv.slots[0].block, BlockType::Stone);
+        assert_eq!(inv.slots[1].block, BlockType::Sand);
+        assert_eq!(inv.slots[2].block, BlockType::Dirt);
+        assert_eq!(inv.slots[3].block, BlockType::Coral);
+        assert_eq!(inv.slots[4].block, BlockType::Kelp);
+        assert_eq!(counts(&inv), [32, 32, 32, 16, 16]);
+    }
+
+    #[test]
+    fn peek_selected_returns_block_without_mutating() {
+        let mut inv = Inventory::default();
+        inv.selected = 3; // Coral, count 16
+        let before = counts(&inv);
+        assert_eq!(inv.peek_selected(), Some(BlockType::Coral));
+        // Repeated peeks do not drain the slot.
+        assert_eq!(inv.peek_selected(), Some(BlockType::Coral));
+        assert_eq!(counts(&inv), before);
+    }
+
+    #[test]
+    fn peek_selected_returns_none_when_empty() {
+        let mut inv = Inventory::default();
+        inv.selected = 3;
+        inv.slots[3].count = 0;
+        assert_eq!(inv.peek_selected(), None);
+    }
+
+    #[test]
+    fn take_selected_decrements_and_returns_block() {
+        let mut inv = Inventory::default();
+        inv.selected = 3; // Coral, 16
+        assert_eq!(inv.take_selected(), Some(BlockType::Coral));
+        assert_eq!(inv.slots[3].count, 15);
+        // Other slots are untouched — this is the T3 "only slot 4 moves" invariant.
+        assert_eq!(inv.slots[0].count, 32);
+        assert_eq!(inv.slots[1].count, 32);
+        assert_eq!(inv.slots[2].count, 32);
+        assert_eq!(inv.slots[4].count, 16);
+    }
+
+    #[test]
+    fn take_selected_on_empty_slot_returns_none_without_underflow() {
+        let mut inv = Inventory::default();
+        inv.selected = 0;
+        inv.slots[0].count = 0;
+        assert_eq!(inv.take_selected(), None);
+        // No wraparound to u32::MAX.
+        assert_eq!(inv.slots[0].count, 0);
+        // A second call is still safe.
+        assert_eq!(inv.take_selected(), None);
+        assert_eq!(inv.slots[0].count, 0);
+    }
+
+    #[test]
+    fn deposit_increments_matching_slot_by_type() {
+        let mut inv = Inventory::default();
+        // Simulate breaking a Sand block while Coral is selected — the
+        // deposit must land in slot 2 (Sand), not the active slot.
+        inv.selected = 3;
+        inv.deposit(BlockType::Sand);
+        assert_eq!(counts(&inv), [32, 33, 32, 16, 16]);
+        // Selection stays put.
+        assert_eq!(inv.selected, 3);
+    }
+
+    #[test]
+    fn deposit_without_matching_slot_is_a_noop() {
+        let mut inv = Inventory::default();
+        // Replace the Kelp slot with a duplicate Stone slot so no slot
+        // holds Kelp, then try to deposit Kelp — the pickup is dropped
+        // rather than overwriting some other slot.
+        inv.slots[4] = Slot {
+            block: BlockType::Stone,
+            count: 0,
+        };
+        let before = counts(&inv);
+        inv.deposit(BlockType::Kelp);
+        assert_eq!(counts(&inv), before);
+    }
+
+    #[test]
+    fn deposit_saturates_instead_of_overflowing() {
+        let mut inv = Inventory::default();
+        inv.slots[0].count = u32::MAX;
+        inv.deposit(BlockType::Stone);
+        assert_eq!(inv.slots[0].count, u32::MAX);
+    }
+
+    #[test]
+    fn place_then_break_cycle_preserves_totals() {
+        // This mirrors the runtime placement flow: peek, succeed, take —
+        // then later break the same block and deposit by type.
+        let mut inv = Inventory::default();
+        inv.selected = 3; // Coral
+
+        let block = inv.peek_selected().expect("slot not empty");
+        assert_eq!(block, BlockType::Coral);
+        // Simulated successful set_block -> now consume.
+        let taken = inv.take_selected().expect("slot still had stock");
+        assert_eq!(taken, BlockType::Coral);
+        assert_eq!(inv.slots[3].count, 15);
+
+        // Break the placed block later.
+        inv.deposit(block);
+        assert_eq!(inv.slots[3].count, 16);
+    }
+
+    #[test]
+    fn failed_placement_does_not_consume_inventory() {
+        // Mirrors edit.rs: if set_block returns false (e.g. placement
+        // target landed in an unloaded chunk), take_selected is never
+        // called, so the count must stay put.
+        let mut inv = Inventory::default();
+        inv.selected = 3;
+        let before = inv.slots[3].count;
+        let _peeked = inv.peek_selected();
+        // set_block returns false -> no take_selected call.
+        assert_eq!(inv.slots[3].count, before);
+    }
+}
