@@ -17,7 +17,14 @@ pub struct HeadlightsPlugin;
 impl Plugin for HeadlightsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(Headlights::default())
-            .add_systems(Startup, (attach_headlights, spawn_headlights_hud))
+            // The camera is spawned in `AtmospherePlugin`'s `Startup`
+            // systems. Bevy only flushes deferred `Commands` between
+            // schedules, so querying for `Camera3d` in the same `Startup`
+            // pass races the camera's spawn. Running in `PostStartup`
+            // guarantees the camera entity is live before we parent the
+            // headlights to it.
+            .add_systems(PostStartup, attach_headlights)
+            .add_systems(Startup, spawn_headlights_hud)
             .add_systems(
                 Update,
                 (toggle_headlights, apply_headlights_state, update_headlights_hud).chain(),
@@ -92,8 +99,11 @@ fn attach_headlights(mut commands: Commands, cameras: Query<Entity, With<Camera3
         )
         // `SpotLight` aims down its local `-Z`; camera forward is also `-Z`,
         // so the default rotation already aims along the camera's look
-        // direction. We only need a small outward yaw so the cones diverge.
-        .with_rotation(Quat::from_axis_angle(Vec3::Y, sign * HEADLIGHT_SPLAY));
+        // direction. Rotating by `+θ` around `+Y` tilts `-Z` toward `-X`
+        // (left); we want the port light (sign=-1) to tilt further to `-X`
+        // and the starboard light (sign=+1) to tilt to `+X`, which means
+        // yaw = `-sign * splay`.
+        .with_rotation(Quat::from_axis_angle(Vec3::Y, -sign * HEADLIGHT_SPLAY));
 
         commands.spawn((
             SpotLight {
