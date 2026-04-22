@@ -70,8 +70,25 @@ impl Chunk {
         self.blocks[Self::idx(x, y, z)] = block;
     }
 
+    /// Whether the cell at `(x, y, z)` is inside this chunk and opaque.
+    /// Out-of-chunk cells are treated as non-opaque so the outer shell of
+    /// chunks still renders and isn't AO-darkened by missing neighbour data.
+    #[inline]
+    fn is_opaque_at(&self, x: i32, y: i32, z: i32) -> bool {
+        let size = CHUNK_SIZE as i32;
+        if (0..size).contains(&x) && (0..size).contains(&y) && (0..size).contains(&z) {
+            self.get(x as usize, y as usize, z as usize).is_opaque()
+        } else {
+            false
+        }
+    }
+
     /// Build a mesh from this chunk's non-air blocks, emitting one quad per
     /// face that touches an air (or kelp) neighbour.
+    ///
+    /// Each vertex is shaded with classic three-neighbour ambient occlusion
+    /// baked into the vertex colour, and each quad's triangulation is flipped
+    /// so the interpolated AO is continuous across the diagonal.
     pub fn build_mesh(&self) -> Mesh {
         let mut positions: Vec<[f32; 3]> = Vec::new();
         let mut normals: Vec<[f32; 3]> = Vec::new();
@@ -109,23 +126,66 @@ impl Chunk {
                         let ny = y as i32 + normal[1] as i32;
                         let nz = z as i32 + normal[2] as i32;
 
-                        let neighbour_opaque = if (0..CHUNK_SIZE as i32).contains(&nx)
-                            && (0..CHUNK_SIZE as i32).contains(&ny)
-                            && (0..CHUNK_SIZE as i32).contains(&nz)
-                        {
-                            self.get(nx as usize, ny as usize, nz as usize).is_opaque()
-                        } else {
-                            // Treat out-of-chunk space as transparent so the
-                            // chunk's outer shell is always drawn.
-                            false
-                        };
+                        let neighbour_opaque = self.is_opaque_at(nx, ny, nz);
 
                         if neighbour_opaque {
                             continue;
                         }
 
+                        // Identify the face's normal axis (0=X, 1=Y, 2=Z) and
+                        // the two tangent axes we'll sample AO along.
+                        let normal_axis = normal
+                            .iter()
+                            .position(|c| *c != 0.0)
+                            .expect("face normal must have one non-zero component");
+                        let tangent_axes = [(normal_axis + 1) % 3, (normal_axis + 2) % 3];
+                        let normal_step = normal[normal_axis] as i32;
+
                         let color = block.color().to_f32_array();
                         let base = positions.len() as u32;
+
+                        let mut ao_level = [0u8; 4];
+                        for (i, offset) in corners.iter().enumerate() {
+                            // Sign along each tangent axis: 0 -> -1, 1 -> +1.
+                            let u_sign = 2 * offset[tangent_axes[0]] - 1;
+                            let v_sign = 2 * offset[tangent_axes[1]] - 1;
+
+                            let mut side1 = [0i32; 3];
+                            let mut side2 = [0i32; 3];
+                            let mut corner = [0i32; 3];
+                            side1[normal_axis] = normal_step;
+                            side2[normal_axis] = normal_step;
+                            corner[normal_axis] = normal_step;
+                            side1[tangent_axes[0]] = u_sign;
+                            side2[tangent_axes[1]] = v_sign;
+                            corner[tangent_axes[0]] = u_sign;
+                            corner[tangent_axes[1]] = v_sign;
+
+                            let s1 = self.is_opaque_at(
+                                x as i32 + side1[0],
+                                y as i32 + side1[1],
+                                z as i32 + side1[2],
+                            );
+                            let s2 = self.is_opaque_at(
+                                x as i32 + side2[0],
+                                y as i32 + side2[1],
+                                z as i32 + side2[2],
+                            );
+                            let c = self.is_opaque_at(
+                                x as i32 + corner[0],
+                                y as i32 + corner[1],
+                                z as i32 + corner[2],
+                            );
+
+                            ao_level[i] = if s1 && s2 {
+                                0
+                            } else {
+                                3 - (s1 as u8 + s2 as u8 + c as u8)
+                            };
+                        }
+
+                        // AO level (0..=3) -> per-vertex brightness multiplier.
+                        const AO_BRIGHTNESS: [f32; 4] = [0.55, 0.72, 0.87, 1.0];
 
                         for (i, offset) in corners.iter().enumerate() {
                             positions.push([
@@ -134,7 +194,8 @@ impl Chunk {
                                 z as f32 + offset[2] as f32,
                             ]);
                             normals.push(*normal);
-                            colors.push(color);
+                            let b = AO_BRIGHTNESS[ao_level[i] as usize];
+                            colors.push([color[0] * b, color[1] * b, color[2] * b, color[3]]);
                             uvs.push(match i {
                                 0 => [0.0, 1.0],
                                 1 => [1.0, 1.0],
@@ -143,14 +204,30 @@ impl Chunk {
                             });
                         }
 
-                        indices.extend_from_slice(&[
-                            base,
-                            base + 1,
-                            base + 2,
-                            base,
-                            base + 2,
-                            base + 3,
-                        ]);
+                        // Flip the triangulation when the 1-3 diagonal has the
+                        // stronger contrast; this keeps interpolated AO from
+                        // tearing along the default 0-2 split.
+                        let flip = (ao_level[0] as i32 + ao_level[2] as i32)
+                            < (ao_level[1] as i32 + ao_level[3] as i32);
+                        if flip {
+                            indices.extend_from_slice(&[
+                                base,
+                                base + 1,
+                                base + 3,
+                                base + 1,
+                                base + 2,
+                                base + 3,
+                            ]);
+                        } else {
+                            indices.extend_from_slice(&[
+                                base,
+                                base + 1,
+                                base + 2,
+                                base,
+                                base + 2,
+                                base + 3,
+                            ]);
+                        }
                     }
                 }
             }
