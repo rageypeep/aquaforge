@@ -10,9 +10,12 @@ use bevy::render::view::{Hdr, Msaa};
 use crate::game::chunk::CHUNK_SIZE;
 use crate::game::world::{WATER_LEVEL, WORLD_CHUNKS_XZ};
 
+use self::water::{WaterMaterial, WaterMaterialExt, WaterMaterialPlugin};
+
 pub mod lighting;
 pub mod shaders;
 pub mod ui;
+pub mod water;
 
 /// Plugin that installs the underwater look-and-feel and the player camera.
 pub struct AtmospherePlugin;
@@ -26,7 +29,7 @@ impl Plugin for AtmospherePlugin {
         // `PbrPlugin` (part of `DefaultPlugins`), so we only need to attach
         // the `ScreenSpaceAmbientOcclusion` component to the camera.
         app.insert_resource(ClearColor(WATER_COLOR))
-            .add_plugins(lighting::LightingPlugin)
+            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin))
             .add_systems(Startup, (spawn_camera, spawn_water_surface));
     }
 }
@@ -70,24 +73,40 @@ fn spawn_camera(mut commands: Commands) {
 fn spawn_water_surface(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<WaterMaterial>>,
 ) {
     let size = (WORLD_CHUNKS_XZ as f32) * (CHUNK_SIZE as f32) * 4.0;
 
-    let mesh = meshes.add(Plane3d::default().mesh().size(size, size));
-    let material = materials.add(StandardMaterial {
-        base_color: Color::srgba(0.25, 0.55, 0.8, 0.55),
-        alpha_mode: AlphaMode::Blend,
-        // Glassy but not mirror-perfect — a little surface chop is implied.
-        perceptual_roughness: 0.15,
-        metallic: 0.0,
-        // Water has an IOR of ~1.33, so its Fresnel reflectance at normal
-        // incidence is ~0.02. Bevy's `reflectance` remaps that via a 0..1
-        // slider where 0.5 ≈ 4% reflectance, so ~0.35 is closer to physical.
-        reflectance: 0.35,
-        double_sided: true,
-        cull_mode: None,
-        ..default()
+    // The vertex shader displaces per-vertex; we need enough subdivisions
+    // that the wavelength is well-sampled. Our shortest wave-vector is
+    // ~0.35 rad/m (wavelength ≈ 18 m), so 6 m spacing gives ~3 vertices per
+    // wavelength — enough to read as smooth motion without choking llvmpipe.
+    let spacing: f32 = 6.0;
+    let subdivisions = (size / spacing).round().max(2.0) as u32;
+
+    let mesh = meshes.add(
+        Plane3d::default()
+            .mesh()
+            .size(size, size)
+            .subdivisions(subdivisions),
+    );
+
+    let material = materials.add(WaterMaterial {
+        base: StandardMaterial {
+            base_color: Color::srgba(0.25, 0.55, 0.8, 0.55),
+            alpha_mode: AlphaMode::Blend,
+            // Glassy but not mirror-perfect — a little surface chop is implied.
+            perceptual_roughness: 0.15,
+            metallic: 0.0,
+            // Water has an IOR of ~1.33, so its Fresnel reflectance at normal
+            // incidence is ~0.02. Bevy's `reflectance` remaps that via a 0..1
+            // slider where 0.5 ≈ 4% reflectance, so ~0.35 is closer to physical.
+            reflectance: 0.35,
+            double_sided: true,
+            cull_mode: None,
+            ..default()
+        },
+        extension: WaterMaterialExt::default(),
     });
 
     commands.spawn((
