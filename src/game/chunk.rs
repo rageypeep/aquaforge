@@ -380,7 +380,7 @@ fn emit_quad(
     // Position along the perpendicular axis: +1 faces live at s+1, -1 at s.
     let d0_plane = if face.sign > 0 { s + 1 } else { s } as f32;
 
-    let color = cell.block.color().to_f32_array();
+    let (uv_min, uv_max) = crate::rendering::atlas::tile_uv_rect(cell.block);
     let base = positions.len() as u32;
 
     for (i, corner) in face.corner_ends.iter().enumerate() {
@@ -395,14 +395,19 @@ fn emit_quad(
 
         normals.push(face.normal);
 
+        // The atlas texture carries the block's hue, so the vertex
+        // colour is now a pure AO modulator.
         let b = AO_BRIGHTNESS[cell.ao[i] as usize];
-        colors.push([color[0] * b, color[1] * b, color[2] * b, color[3]]);
+        colors.push([b, b, b, 1.0]);
 
-        // Block-unit UVs let a future tiling atlas repeat once per block
-        // across a merged quad without further work.
-        let du = (u - u0) as f32;
-        let dv = (v - v0) as f32;
-        uvs.push([du, dv]);
+        // UV is the block's tile rect stretched to cover the whole
+        // merged quad. Per-block tiling on merged quads is a follow-up
+        // that needs a custom shader (`fract(uv) * tile + offset`); for
+        // now a single tile stretched across e.g. a sand shelf reads as
+        // "sandy" at play distance without any new render plumbing.
+        let u_norm = if corner[0] == 0 { uv_min.x } else { uv_max.x };
+        let v_norm = if corner[1] == 0 { uv_min.y } else { uv_max.y };
+        uvs.push([u_norm, v_norm]);
     }
 
     // Flip the triangulation when the 1-3 diagonal has the stronger AO

@@ -12,6 +12,7 @@ use bevy::prelude::*;
 
 use super::chunk::{CHUNK_SIZE, Chunk};
 use super::chunk_map::ChunkMap;
+use crate::rendering::atlas::BlockAtlas;
 
 /// Vertical extent of the world, in chunks. The seabed and water column
 /// fit inside `0..VERTICAL_CHUNKS`, so streaming only varies the chunk
@@ -76,9 +77,16 @@ impl Plugin for WorldPlugin {
     }
 }
 
-fn spawn_chunk_material(mut commands: Commands, mut materials: ResMut<Assets<StandardMaterial>>) {
+fn spawn_chunk_material(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    atlas: Res<BlockAtlas>,
+) {
     let handle = materials.add(StandardMaterial {
+        // White base_color so the atlas texture and per-vertex AO are
+        // the only things driving the surface colour.
         base_color: Color::WHITE,
+        base_color_texture: Some(atlas.0.clone()),
         perceptual_roughness: 0.95,
         metallic: 0.0,
         reflectance: 0.05,
