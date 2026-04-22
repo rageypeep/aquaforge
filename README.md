@@ -4,22 +4,28 @@ AquaForge is an underwater voxel sandbox written in Rust with
 [Bevy 0.18](https://bevy.org). Think "Minecraft, but the whole world is
 a seafloor" — you fly through a murky ocean, see a chunked blocky
 terrain of sand, stone, dirt, and coral, and look up at a glinting
-water surface above.
+water surface above. You pilot a small sub through it.
 
 This branch is the project's **base scaffold**: just enough code to
 have a lit, foggy underwater scene with deterministic, chunked voxel
-terrain and a free-flying camera.
+terrain and a piloted mini-sub.
 
 ## Controls
 
-| Input              | Action                                  |
-|--------------------|-----------------------------------------|
-| `W` / `A` / `S` / `D` | Move forward/left/back/right         |
-| `Space` / `LShift` | Move up / down                          |
-| `LCtrl`            | Hold to move 3× faster                  |
-| Mouse              | Look around (after clicking the window) |
-| `Left Click`       | Capture the mouse                       |
-| `Esc`              | Release the mouse                       |
+| Input              | Action                                          |
+|--------------------|-------------------------------------------------|
+| `W` / `A` / `S` / `D` | Thrust forward / strafe / reverse            |
+| `Space` / `LShift` | Ascend / descend                                |
+| `LCtrl`            | Hold for 2× thruster boost                      |
+| Mouse              | Look around (after clicking the window)         |
+| `Left Click`       | Capture the mouse / break the targeted block    |
+| `Right Click`      | Place from the active hotbar slot               |
+| `1`–`5`            | Select hotbar slot                              |
+| `Esc`              | Release the mouse                               |
+
+The camera is a real sub now: a compact AABB hull collides with the
+terrain, an onboard O2 reserve drains while submerged, and refills
+once the sub surfaces.
 
 ## Running
 
@@ -48,7 +54,8 @@ src/
 ├── rendering/
 │   └── mod.rs          # Underwater fog, ambient, camera, sea surface
 ├── systems/
-│   └── input.rs        # Fly-cam: WASD, mouse look, cursor grab/release
+│   ├── input.rs        # Cursor grab / release
+│   └── sub.rs          # Sub controller, swept-AABB collision, O2 reserve
 └── utils/
     ├── math.rs         # smoothstep / bilerp helpers
     └── noise.rs        # Tiny value-noise + fBm (no external deps)
@@ -58,8 +65,7 @@ src/
 
 The base intentionally leaves room for:
 
-- Block placement & destruction (ray-cast from the camera)
-- Proper swim physics (buoyancy, drag, air budget)
 - Biomes (kelp forests, reefs, thermal vents)
-- Infinite chunk streaming around the player
 - Underwater post-processing (caustics, god-rays, volumetric lighting)
+- Drowning damage once the oxygen meter empties
+- Buoyancy (gear-weighted sink / float)

@@ -46,6 +46,7 @@ impl Plugin for AtmospherePlugin {
                 WaterMaterialPlugin,
                 atlas::BlockAtlasPlugin,
                 HeadlightsPlugin,
+                ui::HudPlugin,
             ))
             .add_systems(Startup, (spawn_camera, spawn_water_surface))
             .add_systems(Update, follow_camera_on_xz);
@@ -117,8 +118,7 @@ fn spawn_water_surface(
     // `horizontal_radius` doesn't reveal a hard water edge at the
     // horizon. Clamp to `MIN_SEA_SURFACE_SIZE` so small radii still get
     // a visually infinite surface.
-    let load_diameter =
-        ((2 * config.horizontal_radius + 1) * CHUNK_SIZE as i32) as f32;
+    let load_diameter = ((2 * config.horizontal_radius + 1) * CHUNK_SIZE as i32) as f32;
     let size = (load_diameter * SEA_SURFACE_SAFETY_FACTOR).max(MIN_SEA_SURFACE_SIZE);
 
     // The vertex shader displaces per-vertex; we need enough subdivisions

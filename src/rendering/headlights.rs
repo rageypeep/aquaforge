@@ -27,7 +27,12 @@ impl Plugin for HeadlightsPlugin {
             .add_systems(Startup, spawn_headlights_hud)
             .add_systems(
                 Update,
-                (toggle_headlights, apply_headlights_state, update_headlights_hud).chain(),
+                (
+                    toggle_headlights,
+                    apply_headlights_state,
+                    update_headlights_hud,
+                )
+                    .chain(),
             );
     }
 }
@@ -92,18 +97,15 @@ fn attach_headlights(mut commands: Commands, cameras: Query<Entity, With<Camera3
     };
 
     for (side, sign) in [("Port", -1.0f32), ("Starboard", 1.0f32)] {
-        let transform = Transform::from_xyz(
-            sign * HEADLIGHT_SIDE_OFFSET,
-            0.0,
-            -HEADLIGHT_FORWARD_OFFSET,
-        )
-        // `SpotLight` aims down its local `-Z`; camera forward is also `-Z`,
-        // so the default rotation already aims along the camera's look
-        // direction. Rotating by `+θ` around `+Y` tilts `-Z` toward `-X`
-        // (left); we want the port light (sign=-1) to tilt further to `-X`
-        // and the starboard light (sign=+1) to tilt to `+X`, which means
-        // yaw = `-sign * splay`.
-        .with_rotation(Quat::from_axis_angle(Vec3::Y, -sign * HEADLIGHT_SPLAY));
+        let transform =
+            Transform::from_xyz(sign * HEADLIGHT_SIDE_OFFSET, 0.0, -HEADLIGHT_FORWARD_OFFSET)
+                // `SpotLight` aims down its local `-Z`; camera forward is also `-Z`,
+                // so the default rotation already aims along the camera's look
+                // direction. Rotating by `+θ` around `+Y` tilts `-Z` toward `-X`
+                // (left); we want the port light (sign=-1) to tilt further to `-X`
+                // and the starboard light (sign=+1) to tilt to `+X`, which means
+                // yaw = `-sign * splay`.
+                .with_rotation(Quat::from_axis_angle(Vec3::Y, -sign * HEADLIGHT_SPLAY));
 
         commands.spawn((
             SpotLight {

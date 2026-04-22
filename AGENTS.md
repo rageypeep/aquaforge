@@ -70,13 +70,16 @@ aquaforge/
 │   │   └── world.rs         # 6×2×6 chunk grid spawn, water-level constant
 │   ├── rendering/
 │   │   ├── mod.rs           # AtmospherePlugin: ambient, fog, HDR, sea plane
+│   │   ├── atlas.rs         # Procedural block texture atlas (BlockAtlasPlugin)
+│   │   ├── headlights.rs    # Toggleable sub-style spot-light headlights
 │   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping
 │   │   ├── water.rs         # ExtendedMaterial + MaterialPlugin for water
 │   │   ├── shaders.rs       # (stub, reserved for future custom materials)
-│   │   └── ui.rs            # (stub, reserved for future HUD widgets)
+│   │   └── ui.rs            # Oxygen HUD meter (HudPlugin)
 │   ├── systems/
-│   │   ├── mod.rs           # ControlsPlugin
-│   │   └── input.rs         # Fly-cam: WASD, mouse-look, cursor grab/release
+│   │   ├── mod.rs           # ControlsPlugin (composes InputPlugin + SubPlugin)
+│   │   ├── input.rs         # Cursor grab / release
+│   │   └── sub.rs           # Sub controller, swept-AABB collision, O2 reserve
 │   └── utils/
 │       ├── mod.rs           # Re-exports math + noise
 │       ├── math.rs          # smoothstep, bilerp
@@ -109,10 +112,17 @@ aquaforge/
   tessellated `Plane3d` driven by `WaterMaterialPlugin` (an
   `ExtendedMaterial<StandardMaterial, WaterMaterialExt>` with a custom
   vertex shader in `assets/shaders/water.wgsl`).
-- **Input uses `CursorGrabMode::Locked`.** The fly-cam reads `WASD`,
-  `Space`/`LShift`, `LCtrl` sprint, and yaw/pitch from the locked
-  pointer. Left-click grabs; Esc releases. `edit.rs` hooks into the
-  same grabbed state for break/place and digit-key slot selection.
+- **Input uses `CursorGrabMode::Locked`.** `systems/input.rs` is the
+  single source of truth for the locked state: left-click grabs, Esc
+  releases. The sub controller (`systems/sub.rs`) reads `WASD`,
+  `Space`/`LShift`, `LCtrl` boost, and yaw/pitch from mouse motion
+  only while the cursor is locked, and `edit.rs` hooks into the same
+  grabbed state for break/place and digit-key slot selection.
+- **Sub physics live in pure functions.** `systems/sub.rs` isolates
+  swept-AABB resolution (`resolve_collisions`), wish-vector composition
+  (`wish_direction`), and O2 bookkeeping (`step_oxygen`) from Bevy
+  so each has focused unit tests. The plugin-level systems are thin
+  glue on top.
 
 ## Conventions
 
@@ -212,4 +222,8 @@ aquaforge/
 | #9 | Merged | Per-vertex ambient occlusion baked into the mesher |
 | #10 | Merged | Greedy AO-aware mesher (merges coplanar same-type quads) |
 | #11 | Merged | Animated water via `ExtendedMaterial` + custom vertex shader |
-| #7 | Open | Inventory-backed hotbar HUD with per-slot counts |
+| #7 | Merged | Inventory-backed hotbar HUD with per-slot counts |
+| #12 | Merged | Streaming chunk loader (Chebyshev radius, per-frame caps, hysteresis) |
+| #13 | Merged | Procedural block texture atlas sampled by the chunk material |
+| #15 | Merged | Toggleable sub-style headlights (`L` to toggle) |
+| #16 | Open | Sub controller: swept-AABB collision + onboard O2 reserve + HUD |
