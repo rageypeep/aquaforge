@@ -64,12 +64,24 @@ pub fn tile_of(block: BlockType) -> UVec2 {
 
 /// UV rect for a single tile in atlas-normalized coordinates.
 ///
-/// Returned as `(min_uv, max_uv)` so meshers can pick either corner.
+/// Returned as `(min_uv, max_uv)` so meshers can pick either corner. The
+/// rect is inset by half a texel on every side: with [`ImageFilterMode::Nearest`]
+/// sampling and [`ImageAddressMode::Repeat`] wrap, a max UV that lands
+/// exactly on a tile boundary would round *down* to the first texel of
+/// the neighbouring tile (and the `u=1.0` case wraps across the atlas to
+/// tile 0). The half-texel inset keeps sampling inside the intended tile.
 pub fn tile_uv_rect(block: BlockType) -> (Vec2, Vec2) {
     let tile = tile_of(block);
     let size = 1.0 / ATLAS_GRID as f32;
-    let min = Vec2::new(tile.x as f32 * size, tile.y as f32 * size);
-    let max = min + Vec2::splat(size);
+    let half_texel = 0.5 / ATLAS_SIZE as f32;
+    let min = Vec2::new(
+        tile.x as f32 * size + half_texel,
+        tile.y as f32 * size + half_texel,
+    );
+    let max = Vec2::new(
+        (tile.x + 1) as f32 * size - half_texel,
+        (tile.y + 1) as f32 * size - half_texel,
+    );
     (min, max)
 }
 
@@ -269,14 +281,29 @@ mod tests {
     }
 
     #[test]
-    fn tile_uv_rect_matches_tile_of() {
+    fn tile_uv_rect_is_half_texel_inset_from_tile_of() {
         let (min, max) = tile_uv_rect(BlockType::Sand);
         let tile = tile_of(BlockType::Sand);
         let size = 1.0 / ATLAS_GRID as f32;
-        assert!((min.x - tile.x as f32 * size).abs() < 1e-6);
-        assert!((min.y - tile.y as f32 * size).abs() < 1e-6);
-        assert!((max.x - min.x - size).abs() < 1e-6);
-        assert!((max.y - min.y - size).abs() < 1e-6);
+        let half_texel = 0.5 / ATLAS_SIZE as f32;
+        assert!((min.x - (tile.x as f32 * size + half_texel)).abs() < 1e-6);
+        assert!((min.y - (tile.y as f32 * size + half_texel)).abs() < 1e-6);
+        assert!((max.x - ((tile.x + 1) as f32 * size - half_texel)).abs() < 1e-6);
+        assert!((max.y - ((tile.y + 1) as f32 * size - half_texel)).abs() < 1e-6);
+        // Rect must still land strictly inside its tile — a full texel of
+        // padding on every side is plenty for Nearest filtering without
+        // losing meaningful tile area.
+        assert!(max.x < (tile.x + 1) as f32 * size);
+        assert!(max.y < (tile.y + 1) as f32 * size);
+    }
+
+    #[test]
+    fn coral_max_u_does_not_wrap_to_stone() {
+        // Regression: with Repeat wrap + an un-inset max.x == 1.0, the
+        // right edge of Coral's tile sampled texel 0 (Stone's first
+        // column) instead of Coral's last column.
+        let (_, max) = tile_uv_rect(BlockType::Coral);
+        assert!(max.x < 1.0, "Coral max.x must stay under the wrap boundary");
     }
 
     #[test]

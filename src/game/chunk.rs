@@ -5,6 +5,7 @@ use bevy::mesh::{Indices, Mesh, PrimitiveTopology};
 use bevy::prelude::*;
 
 use super::blocks::BlockType;
+use crate::rendering::atlas;
 use crate::utils::noise;
 
 /// Edge length of a chunk, in blocks.
@@ -380,7 +381,7 @@ fn emit_quad(
     // Position along the perpendicular axis: +1 faces live at s+1, -1 at s.
     let d0_plane = if face.sign > 0 { s + 1 } else { s } as f32;
 
-    let (uv_min, uv_max) = crate::rendering::atlas::tile_uv_rect(cell.block);
+    let (uv_min, uv_max) = atlas::tile_uv_rect(cell.block);
     let base = positions.len() as u32;
 
     for (i, corner) in face.corner_ends.iter().enumerate() {
