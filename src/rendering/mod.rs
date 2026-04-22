@@ -13,6 +13,7 @@ use crate::game::world::{StreamingConfig, WATER_LEVEL};
 use self::headlights::HeadlightsPlugin;
 use self::water::{WaterMaterial, WaterMaterialExt, WaterMaterialPlugin};
 
+pub mod atlas;
 pub mod headlights;
 pub mod lighting;
 pub mod shaders;
@@ -43,6 +44,7 @@ impl Plugin for AtmospherePlugin {
             .add_plugins((
                 lighting::LightingPlugin,
                 WaterMaterialPlugin,
+                atlas::BlockAtlasPlugin,
                 HeadlightsPlugin,
                 ui::HudPlugin,
             ))

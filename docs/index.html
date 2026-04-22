@@ -537,10 +537,16 @@ cargo run --release</code></pre>
           <div class="rec">
             <h4>Textured block atlas <span class="pill done">Shipped in #13</span></h4>
             <p class="dim">
-              A 4&times;4 / 128&sup2; RGBA atlas is generated at
-              <code>PreStartup</code> from each <code>BlockType</code>'s
-              base colour plus deterministic value noise. Vertex colour is
-              now a pure AO modulator; the atlas carries the hue.
+              Flat per-block vertex colours were replaced with a sampled
+              procedural atlas: one 4&times;4 / 128&sup2; RGBA image is built
+              at <code>PreStartup</code> from each <code>BlockType</code>'s
+              base colour plus a deterministic value-noise hash, and the
+              chunk material samples it via <code>tile_uv_rect</code>
+              (half-texel-inset UVs so Nearest + Repeat sampling stays
+              inside the intended tile). Vertex colour is now a pure AO
+              modulator. Per-block tiling across greedy-merged quads still
+              wants a fragment shader doing <code>fract(uv)</code>; that's
+              an explicit follow-up.
             </p>
             <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/atlas.rs</span></div>
           </div>

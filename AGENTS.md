@@ -120,7 +120,7 @@ aquaforge/
   grabbed state for break/place and digit-key slot selection.
 - **Sub physics live in pure functions.** `systems/sub.rs` isolates
   swept-AABB resolution (`resolve_collisions`), wish-vector composition
-  (`compose_wish_vector`), and O2 bookkeeping (`step_oxygen`) from Bevy
+  (`wish_direction`), and O2 bookkeeping (`step_oxygen`) from Bevy
   so each has focused unit tests. The plugin-level systems are thin
   glue on top.
 
@@ -225,5 +225,5 @@ aquaforge/
 | #7 | Merged | Inventory-backed hotbar HUD with per-slot counts |
 | #12 | Merged | Streaming chunk loader (Chebyshev radius, per-frame caps, hysteresis) |
 | #13 | Merged | Procedural block texture atlas sampled by the chunk material |
-| #15 | Merged | Toggleable sub-style headlights (`F` to toggle) |
+| #15 | Merged | Toggleable sub-style headlights (`L` to toggle) |
 | #16 | Open | Sub controller: swept-AABB collision + onboard O2 reserve + HUD |
