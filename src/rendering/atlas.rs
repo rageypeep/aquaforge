@@ -201,8 +201,7 @@ fn tint_pixel(
         }
         // Brighter dapples for coral.
         BlockType::Coral => {
-            let hash =
-                (value_noise(block, px / 3, py / 3) - 0.5) * 2.0 * detail_amp;
+            let hash = (value_noise(block, px / 3, py / 3) - 0.5) * 2.0 * detail_amp;
             1.0 + hash
         }
         _ => {
@@ -244,6 +243,8 @@ fn block_seed(block: BlockType) -> u32 {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
 
     #[test]
@@ -254,7 +255,6 @@ mod tests {
 
     #[test]
     fn every_block_type_has_a_unique_tile() {
-        use std::collections::HashSet;
         let tiles: HashSet<UVec2> = [
             BlockType::Stone,
             BlockType::Sand,
