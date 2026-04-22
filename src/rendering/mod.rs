@@ -10,8 +10,10 @@ use bevy::render::view::{Hdr, Msaa};
 use crate::game::chunk::CHUNK_SIZE;
 use crate::game::world::{StreamingConfig, WATER_LEVEL};
 
+use self::headlights::HeadlightsPlugin;
 use self::water::{WaterMaterial, WaterMaterialExt, WaterMaterialPlugin};
 
+pub mod headlights;
 pub mod lighting;
 pub mod shaders;
 pub mod ui;
@@ -38,7 +40,7 @@ impl Plugin for AtmospherePlugin {
         // `PbrPlugin` (part of `DefaultPlugins`), so we only need to attach
         // the `ScreenSpaceAmbientOcclusion` component to the camera.
         app.insert_resource(ClearColor(WATER_COLOR))
-            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin))
+            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin, HeadlightsPlugin))
             .add_systems(Startup, (spawn_camera, spawn_water_surface))
             .add_systems(Update, follow_camera_on_xz);
     }
