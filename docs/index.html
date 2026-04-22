@@ -323,11 +323,28 @@
             <span>Animated water surface via an <code>ExtendedMaterial</code>-wrapped
               <code>StandardMaterial</code> with a custom vertex shader
               (<code>assets/shaders/water.wgsl</code>).</span></li>
-          <li><span class="pill wip">PR #7</span>
-            <span>Inventory-backed hotbar HUD &mdash; 5 slots at bottom centre with
+          <li><span class="pill done">PR #12</span>
+            <span>Streaming chunk loader: the world is now a
+              <code>HashMap&lt;IVec3, Entity&gt;</code> of chunks loaded / unloaded
+              each frame inside a Chebyshev radius around the camera, with per-frame
+              spawn/despawn caps and a hysteresis band to stop border churn.</span></li>
+          <li><span class="pill done">PR #7</span>
+            <span>Inventory-backed hotbar HUD &mdash; 6 slots at bottom centre with
               per-slot icons, counts, and yellow-bordered selection. Break deposits
               into the matching slot; place consumes one unit only after a confirmed
-              <code>set_block</code>. <em>Open, awaiting merge.</em></span></li>
+              <code>set_block</code>.</span></li>
+          <li><span class="pill done">PR #13</span>
+            <span>Procedural block texture atlas &mdash; a 4&times;4 / 128&sup2; RGBA
+              atlas is generated at <code>PreStartup</code> from each
+              <code>BlockType</code>'s base colour plus deterministic value noise.
+              Vertex colour is now a pure AO modulator; the atlas carries the hue.</span></li>
+          <li><span class="pill done">PR #15</span>
+            <span>Toggleable sub-style headlights that splay from the camera and
+              light the scene ahead of the swimmer.</span></li>
+          <li><span class="pill wip">Swimmer + collision + oxygen</span>
+            <span>Replaces the fly-cam with an in-world swimmer: body AABB, water
+              drag, swept-AABB collision against the voxel grid, and an oxygen meter
+              that drains below water and refills above.</span></li>
         </ul>
       </div>
     </section>
@@ -367,14 +384,14 @@
           </p>
         </div>
         <div class="card">
-          <h3>Fly-cam controls</h3>
+          <h3>Swimmer controls</h3>
           <p class="dim">
-            <code>ControlsPlugin</code> attaches a <code>FlyCam</code> to
-            any <code>Camera3d</code>: WASD moves rotation-relative,
-            <kbd>Space</kbd>/<kbd>LShift</kbd> go up/down,
-            <kbd>LCtrl</kbd> is a 3&times; sprint, mouse controls yaw/pitch
-            while the cursor is locked, left-click grabs the cursor, and
-            <kbd>Esc</kbd> releases it.
+            <code>ControlsPlugin</code> attaches a <code>Swimmer</code> +
+            <code>Oxygen</code> to any <code>Camera3d</code>: WASD + <kbd>Space</kbd>/
+            <kbd>LShift</kbd> feed an input-damped velocity that resolves
+            axis-by-axis against the voxel grid, so you can't tunnel into
+            terrain any more. <kbd>LCtrl</kbd> is a 2&times; sprint. The oxygen
+            meter drains at 1 u/s underwater and refills at 5 u/s above.
           </p>
         </div>
         <div class="card full">
@@ -433,8 +450,8 @@
           <table class="controls">
             <tr><th>Input</th><th>Action</th></tr>
             <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Move forward / left / back / right</td></tr>
-            <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Move up / down</td></tr>
-            <tr><td><kbd>LCtrl</kbd></td><td>Hold for 3&times; sprint</td></tr>
+            <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Kick up / down</td></tr>
+            <tr><td><kbd>LCtrl</kbd></td><td>Hold for 2&times; sprint</td></tr>
             <tr><td>Mouse</td><td>Look around (after clicking the window)</td></tr>
             <tr><td>Left&nbsp;click</td><td>Grab cursor &middot; after grab, break the highlighted block</td></tr>
             <tr><td>Right&nbsp;click</td><td>Place the held block on the highlighted face</td></tr>
@@ -475,13 +492,14 @@ cargo run --release</code></pre>
           <h3>World &amp; generation</h3>
 
           <div class="rec">
-            <h4>Streaming chunk loader around the player</h4>
+            <h4>Streaming chunk loader around the player <span class="pill done">Shipped in #12</span></h4>
             <p class="dim">
-              Today's world is a hard-coded 6&times;2&times;6 grid spawned at
-              startup. Move that into a <code>HashMap&lt;IVec3, Chunk&gt;</code>,
-              load/unload chunks within a radius of the camera, and remesh
-              dirty chunks lazily. Needed before the world can feel
-              &ldquo;large&rdquo;.
+              The world is now a <code>HashMap&lt;IVec3, Entity&gt;</code>
+              of chunks loaded / unloaded each frame within a Chebyshev
+              radius of the camera, with per-frame spawn/despawn caps and
+              a hysteresis band on the unload radius. The sea surface plane
+              scales with the streaming radius so there's no hard water
+              edge at the horizon.
             </p>
             <div class="tags"><span class="tag p1">P1</span><span class="tag">game/world.rs</span></div>
           </div>
@@ -515,13 +533,14 @@ cargo run --release</code></pre>
           <h3>Rendering &amp; atmosphere</h3>
 
           <div class="rec">
-            <h4>Textured block atlas</h4>
+            <h4>Textured block atlas <span class="pill done">Shipped in #13</span></h4>
             <p class="dim">
-              Replace flat per-block vertex colours with a single texture
-              atlas (one image, UV offsets per face). Opens the door to
-              animated water, wavy kelp, varied stone, and actual normals.
+              A 4&times;4 / 128&sup2; RGBA atlas is generated at
+              <code>PreStartup</code> from each <code>BlockType</code>'s
+              base colour plus deterministic value noise. Vertex colour is
+              now a pure AO modulator; the atlas carries the hue.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/shaders.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">rendering/atlas.rs</span></div>
           </div>
 
           <div class="rec">
@@ -575,15 +594,15 @@ cargo run --release</code></pre>
           <h3>Gameplay</h3>
 
           <div class="rec">
-            <h4>Swimmer player with swept-AABB collision</h4>
+            <h4>Swimmer player with swept-AABB collision <span class="pill wip">In flight</span></h4>
             <p class="dim">
-              Replace the fly-cam with a capsule &ldquo;diver&rdquo;: mild
-              gravity when out of water, buoyancy + drag underwater, swept
-              AABB-vs-voxel collision against the chunk grid, and an air /
-              oxygen budget that ticks down and forces you to surface.
-              First real step toward a game loop.
+              The fly-cam is now a <code>Swimmer</code>: a body AABB around
+              the camera with water-drag damping, per-axis swept collision
+              against the voxel grid, and an oxygen meter that drains while
+              submerged and refills above water. Drowning damage + buoyancy
+              are still follow-ups.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">new: game/player.rs</span><span class="tag">new: game/physics.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">systems/swimmer.rs</span><span class="tag">rendering/ui.rs</span></div>
           </div>
 
           <div class="rec">
