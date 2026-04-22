@@ -70,11 +70,18 @@ fn fragment(
     let up_mask = smoothstep(0.2, 0.85, pbr_input.N.y);
 
     // Fade with depth beneath the water plane so deep crevices don't
-    // over-brighten. `fade_depth = 0` skips the falloff entirely.
-    var depth_fade: f32 = 1.0;
-    if caustics_params.fade_depth > 0.0 {
-        let depth_below = caustics_params.water_level - in.world_position.y;
-        depth_fade = 1.0 - clamp(depth_below / caustics_params.fade_depth, 0.0, 1.0);
+    // over-brighten. Surfaces above the water plane get zero caustics —
+    // they're emerged, not submerged, so there's no water lens focusing
+    // sunlight onto them. `fade_depth = 0` keeps full brightness at every
+    // depth below the plane but still clips above-water points to zero.
+    var depth_fade: f32 = 0.0;
+    let depth_below = caustics_params.water_level - in.world_position.y;
+    if depth_below > 0.0 {
+        if caustics_params.fade_depth > 0.0 {
+            depth_fade = 1.0 - clamp(depth_below / caustics_params.fade_depth, 0.0, 1.0);
+        } else {
+            depth_fade = 1.0;
+        }
     }
 
     let t = globals.time * caustics_params.speed;
