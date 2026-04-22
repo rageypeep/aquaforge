@@ -53,7 +53,7 @@ impl Plugin for LightingPlugin {
             // blue-green cast as the water volume without competing with the
             // direct sun.
             color: Color::srgb(0.55, 0.78, 0.95),
-            brightness: 60.0,
+            brightness: 400.0,
             ..default()
         })
         .add_systems(Startup, (spawn_sun, spawn_scatter_fill));
@@ -76,8 +76,9 @@ fn spawn_sun(mut commands: Commands) {
             // Slight warm-to-cool tint: the sun is still warm, but most
             // green/red wavelengths get absorbed on the way down.
             color: Color::srgb(0.92, 0.97, 1.0),
-            // Overcast-daylight through several metres of water.
-            illuminance: 12_000.0,
+            // Bright shallow-water daylight: ~30k lux reaches a few metres
+            // down on a sunny day.
+            illuminance: 30_000.0,
             shadows_enabled: true,
             ..default()
         },
@@ -98,7 +99,7 @@ fn spawn_scatter_fill(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
             color: Color::srgb(0.35, 0.65, 0.8),
-            illuminance: 1_500.0,
+            illuminance: 4_000.0,
             shadows_enabled: false,
             ..default()
         },
