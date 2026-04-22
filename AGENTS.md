@@ -78,6 +78,7 @@ aquaforge/
 │   │   ├── mod.rs           # ControlsPlugin
 │   │   └── input.rs         # Fly-cam: WASD, mouse-look, cursor grab/release
 │   └── utils/
+│       ├── mod.rs           # Re-exports math + noise
 │       ├── math.rs          # smoothstep, bilerp
 │       └── noise.rs         # Dependency-free value-noise + fBm
 ├── AGENTS.md                # (this file)
