@@ -1,6 +1,6 @@
 //! Cursor grab / release.
 //!
-//! The swimmer controller (`systems::swimmer`) reads mouse motion only
+//! The sub controller (`systems::sub`) reads mouse motion only
 //! while the cursor is in [`CursorGrabMode::Locked`], so this module is
 //! the single source of truth for when it is. Left-click grabs; Escape
 //! releases. Block-editing (`game::edit`) also keys off the same locked
@@ -10,14 +10,14 @@
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 
-use super::swimmer::SwimmerPlugin;
+use super::sub::SubPlugin;
 
 /// Input + camera controls plugin.
 pub struct ControlsPlugin;
 
 impl Plugin for ControlsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(SwimmerPlugin)
+        app.add_plugins(SubPlugin)
             .add_systems(Update, (grab_cursor_on_click, release_cursor_on_escape));
     }
 }

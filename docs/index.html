@@ -340,11 +340,11 @@
               Vertex colour is now a pure AO modulator; the atlas carries the hue.</span></li>
           <li><span class="pill done">PR #15</span>
             <span>Toggleable sub-style headlights that splay from the camera and
-              light the scene ahead of the swimmer.</span></li>
-          <li><span class="pill wip">Swimmer + collision + oxygen</span>
-            <span>Replaces the fly-cam with an in-world swimmer: body AABB, water
-              drag, swept-AABB collision against the voxel grid, and an oxygen meter
-              that drains below water and refills above.</span></li>
+              light the scene ahead of the sub.</span></li>
+          <li><span class="pill wip">Mini-sub + collision + O2</span>
+            <span>Replaces the fly-cam with a piloted mini-sub: hull AABB, water
+              drag, swept-AABB collision against the voxel grid, and an onboard
+              oxygen reserve that drains below water and refills at the surface.</span></li>
         </ul>
       </div>
     </section>
@@ -384,14 +384,16 @@
           </p>
         </div>
         <div class="card">
-          <h3>Swimmer controls</h3>
+          <h3>Piloted mini-sub</h3>
           <p class="dim">
-            <code>ControlsPlugin</code> attaches a <code>Swimmer</code> +
-            <code>Oxygen</code> to any <code>Camera3d</code>: WASD + <kbd>Space</kbd>/
-            <kbd>LShift</kbd> feed an input-damped velocity that resolves
-            axis-by-axis against the voxel grid, so you can't tunnel into
-            terrain any more. <kbd>LCtrl</kbd> is a 2&times; sprint. The oxygen
-            meter drains at 1 u/s underwater and refills at 5 u/s above.
+            <code>ControlsPlugin</code> attaches a <code>Sub</code> +
+            <code>Oxygen</code> to any <code>Camera3d</code>: WASD +
+            <kbd>Space</kbd>/<kbd>LShift</kbd> feed the sub's thrusters, and
+            the resulting velocity is water-drag-damped and resolved
+            axis-by-axis against the voxel grid so the hull can't tunnel
+            into terrain. <kbd>LCtrl</kbd> is a 2&times; thruster boost. The
+            onboard O2 reserve drains at 1 u/s underwater and refills at
+            5 u/s once the sub surfaces.
           </p>
         </div>
         <div class="card full">
@@ -449,9 +451,9 @@
           <h3>Controls</h3>
           <table class="controls">
             <tr><th>Input</th><th>Action</th></tr>
-            <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Move forward / left / back / right</td></tr>
-            <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Kick up / down</td></tr>
-            <tr><td><kbd>LCtrl</kbd></td><td>Hold for 2&times; sprint</td></tr>
+            <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Thrust forward / strafe / reverse</td></tr>
+            <tr><td><kbd>Space</kbd> / <kbd>LShift</kbd></td><td>Ascend / descend</td></tr>
+            <tr><td><kbd>LCtrl</kbd></td><td>Hold for 2&times; thruster boost</td></tr>
             <tr><td>Mouse</td><td>Look around (after clicking the window)</td></tr>
             <tr><td>Left&nbsp;click</td><td>Grab cursor &middot; after grab, break the highlighted block</td></tr>
             <tr><td>Right&nbsp;click</td><td>Place the held block on the highlighted face</td></tr>
@@ -594,15 +596,15 @@ cargo run --release</code></pre>
           <h3>Gameplay</h3>
 
           <div class="rec">
-            <h4>Swimmer player with swept-AABB collision <span class="pill wip">In flight</span></h4>
+            <h4>Piloted mini-sub with swept-AABB collision <span class="pill wip">In flight</span></h4>
             <p class="dim">
-              The fly-cam is now a <code>Swimmer</code>: a body AABB around
-              the camera with water-drag damping, per-axis swept collision
-              against the voxel grid, and an oxygen meter that drains while
-              submerged and refills above water. Drowning damage + buoyancy
-              are still follow-ups.
+              The fly-cam is now a <code>Sub</code>: a hull AABB around the
+              camera with water-drag damping, per-axis swept collision
+              against the voxel grid, and an onboard O2 reserve that drains
+              while submerged and refills once the sub surfaces. Hull-breach
+              damage + buoyancy are still follow-ups.
             </p>
-            <div class="tags"><span class="tag p1">P1</span><span class="tag">systems/swimmer.rs</span><span class="tag">rendering/ui.rs</span></div>
+            <div class="tags"><span class="tag p1">P1</span><span class="tag">systems/sub.rs</span><span class="tag">rendering/ui.rs</span></div>
           </div>
 
           <div class="rec">
@@ -670,7 +672,7 @@ cargo run --release</code></pre>
             <h4>Underwater audio pass</h4>
             <p class="dim">
               Low-pass filtered ambient loop, muffled block-place / break
-              SFX, and bubble sounds when the player swims. Bevy's built-in
+              SFX, and engine / bubble sounds tied to the sub's thrust. Bevy's built-in
               audio is plenty to start, and the current CI runs under ALSA
               so there's no new system dep.
             </p>

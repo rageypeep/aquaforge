@@ -4,28 +4,28 @@ AquaForge is an underwater voxel sandbox written in Rust with
 [Bevy 0.18](https://bevy.org). Think "Minecraft, but the whole world is
 a seafloor" — you fly through a murky ocean, see a chunked blocky
 terrain of sand, stone, dirt, and coral, and look up at a glinting
-water surface above.
+water surface above. You pilot a small sub through it.
 
 This branch is the project's **base scaffold**: just enough code to
 have a lit, foggy underwater scene with deterministic, chunked voxel
-terrain and a free-flying camera.
+terrain and a piloted mini-sub.
 
 ## Controls
 
 | Input              | Action                                          |
 |--------------------|-------------------------------------------------|
-| `W` / `A` / `S` / `D` | Swim forward/left/back/right                 |
-| `Space` / `LShift` | Kick up / down                                  |
-| `LCtrl`            | Hold to swim 2× faster                          |
+| `W` / `A` / `S` / `D` | Thrust forward / strafe / reverse            |
+| `Space` / `LShift` | Ascend / descend                                |
+| `LCtrl`            | Hold for 2× thruster boost                      |
 | Mouse              | Look around (after clicking the window)         |
 | `Left Click`       | Capture the mouse / break the targeted block    |
 | `Right Click`      | Place from the active hotbar slot               |
 | `1`–`6`            | Select hotbar slot                              |
 | `Esc`              | Release the mouse                               |
 
-The camera is a real swimmer body now: it collides with terrain, drains
-an oxygen meter while submerged, and refills it once the head breaches
-the surface.
+The camera is a real sub now: a compact AABB hull collides with the
+terrain, an onboard O2 reserve drains while submerged, and refills
+once the sub surfaces.
 
 ## Running
 
@@ -55,7 +55,7 @@ src/
 │   └── mod.rs          # Underwater fog, ambient, camera, sea surface
 ├── systems/
 │   ├── input.rs        # Cursor grab / release
-│   └── swimmer.rs      # Swimmer controller, swept-AABB collision, oxygen
+│   └── sub.rs          # Sub controller, swept-AABB collision, O2 reserve
 └── utils/
     ├── math.rs         # smoothstep / bilerp helpers
     └── noise.rs        # Tiny value-noise + fBm (no external deps)

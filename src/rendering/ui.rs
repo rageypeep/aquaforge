@@ -1,7 +1,7 @@
-//! Minimal HUD: an oxygen meter anchored to the bottom-centre of the
-//! screen. Re-reads the current swimmer's [`Oxygen`] component each
-//! frame and resizes a coloured bar. Stays hidden while the meter is
-//! full so the viewport is clean when the player is above water.
+//! Minimal HUD: an O2-reserve meter anchored to the bottom-centre of
+//! the screen. Re-reads the current sub's [`Oxygen`] component each
+//! frame and resizes a coloured bar. Stays hidden while the reserve
+//! is full so the viewport is clean when the sub is surfaced.
 //!
 //! The HUD is intentionally dependency-free — just two `Node` entities
 //! and a [`Text`]. Anything fancier (icons, textures, animated fill
@@ -10,9 +10,9 @@
 
 use bevy::prelude::*;
 
-use crate::systems::swimmer::{Oxygen, Swimmer};
+use crate::systems::sub::{Oxygen, Sub};
 
-/// Plugin that spawns the HUD and keeps it in sync with the swimmer.
+/// Plugin that spawns the HUD and keeps it in sync with the sub.
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
@@ -97,12 +97,12 @@ fn spawn_oxygen_hud(mut commands: Commands) {
 }
 
 fn update_oxygen_hud(
-    swimmers: Query<&Oxygen, With<Swimmer>>,
+    subs: Query<&Oxygen, With<Sub>>,
     mut root: Query<&mut Visibility, (With<OxygenHud>, Without<OxygenFill>)>,
     mut fill: Query<&mut Node, (With<OxygenFill>, Without<OxygenHud>)>,
     mut label: Query<&mut Text, With<OxygenLabel>>,
 ) {
-    let Ok(oxygen) = swimmers.single() else {
+    let Ok(oxygen) = subs.single() else {
         return;
     };
     let Ok(mut root_vis) = root.single_mut() else {
@@ -117,9 +117,8 @@ fn update_oxygen_hud(
 
     let pct = (oxygen.current / oxygen.max).clamp(0.0, 1.0);
 
-    // Hide the meter when it's essentially full and the player is done
-    // worrying about it, so the HUD doesn't constantly hog screen space
-    // on land.
+    // Hide the meter when the reserve is essentially full, so the HUD
+    // doesn't hog screen space while the sub is parked at the surface.
     *root_vis = if pct >= 0.999 {
         Visibility::Hidden
     } else {

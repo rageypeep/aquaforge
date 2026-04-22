@@ -1,14 +1,16 @@
-//! First-person swimmer controller with swept-AABB collision and oxygen.
+//! First-person mini-sub controller with swept-AABB collision and an
+//! onboard oxygen reserve.
 //!
-//! Replaces the old noclip fly-cam with an in-world player: the camera
-//! entity gets a compact AABB body, input drives a velocity that is
-//! damped like a swimmer in water (no instantaneous stops), and the
-//! new position is resolved axis-by-axis against the voxel grid so the
-//! player can't tunnel into solid terrain. While the body is under
-//! `WATER_LEVEL` an oxygen meter drains at 1.0/s and refills at 5.0/s
-//! once the head breaks the surface. No drowning damage yet — the
-//! meter is here to make the "come up for air" loop feel real once a
-//! health system lands.
+//! Replaces the old noclip fly-cam with a piloted sub: the camera is
+//! treated as the pilot's seat inside a compact AABB hull, WASD +
+//! Space/Shift feed the sub's thrusters, and the resulting velocity is
+//! water-drag-damped toward the input target (no instantaneous stops).
+//! The new position is resolved axis-by-axis against the voxel grid so
+//! the sub can't tunnel into solid terrain. While the hull is below
+//! `WATER_LEVEL` the onboard O2 reserve drains at 1.0/s and refills at
+//! 5.0/s once the sub surfaces. No hull-breach / crew damage yet —
+//! the meter is here to make the "vent and surface" loop feel real
+//! once a health system lands.
 //!
 //! Mouse-look reads `AccumulatedMouseMotion` only when the cursor is
 //! grabbed (matching `edit.rs`), so the crosshair-raycast and block
@@ -28,28 +30,23 @@ use crate::game::chunk::Chunk;
 use crate::game::chunk_map::{ChunkMap, world_block_to_chunk};
 use crate::game::world::WATER_LEVEL;
 
-/// Plugin that installs the swimmer controller and oxygen tick.
-pub struct SwimmerPlugin;
+/// Plugin that installs the sub controller and oxygen tick.
+pub struct SubPlugin;
 
-impl Plugin for SwimmerPlugin {
+impl Plugin for SubPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (
-                attach_swimmer,
-                apply_swimmer_look,
-                apply_swimmer_motion,
-                tick_oxygen,
-            ),
+            (attach_sub, apply_sub_look, apply_sub_motion, tick_oxygen),
         );
     }
 }
 
-/// Per-camera swimmer state. Carries rotation so mouse deltas integrate
-/// cleanly, velocity so damping/physics can see last frame's state, and
-/// the AABB half-extents used for collision.
+/// Per-camera sub state. Carries the pilot's view rotation so mouse
+/// deltas integrate cleanly, the hull's velocity so damping sees last
+/// frame's state, and the half-extents of the sub's collision AABB.
 #[derive(Component)]
-pub struct Swimmer {
+pub struct Sub {
     pub yaw: f32,
     pub pitch: f32,
     /// World-space velocity, in units / second.
@@ -63,16 +60,16 @@ pub struct Swimmer {
     pub sensitivity: f32,
 }
 
-impl Default for Swimmer {
+impl Default for Sub {
     fn default() -> Self {
         Self {
             yaw: 0.0,
             pitch: 0.0,
             velocity: Vec3::ZERO,
-            // A compact ~0.7³ body so the camera stays centred inside
-            // its collider. We're modelling a floating swimmer, not a
-            // standing character, so there's no dedicated "eye height"
-            // offset from the body centre.
+            // A compact ~0.7³ hull so the pilot camera sits at the
+            // centre of its collider. This is a single-seat mini-sub,
+            // not a standing player, so there's no dedicated "eye
+            // height" offset from the hull centre.
             aabb_half: Vec3::splat(0.35),
             speed: 6.0,
             sprint: 2.0,
@@ -81,8 +78,8 @@ impl Default for Swimmer {
     }
 }
 
-/// Oxygen meter. Depletes while the swimmer's body centre is below the
-/// water surface and refills once the head breaches it.
+/// Onboard oxygen reserve. Depletes while the sub's hull centre is
+/// below the water surface and refills once the sub breaches it.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Oxygen {
     pub current: f32,
@@ -105,25 +102,26 @@ impl Default for Oxygen {
 /// Water drag time constant: velocity decays toward the input-driven
 /// target with this τ when the body is submerged (1/e per 0.3 s).
 const WATER_TAU: f32 = 0.3;
-/// Out-of-water (light-air) drag time constant. Weaker so the player
-/// can skim along the surface without feeling stuck.
+/// Above-water drag time constant. Weaker so the sub can skim the
+/// surface without feeling stuck in air.
 const AIR_TAU: f32 = 1.2;
-/// Gravity applied only when the body centre is above the water line.
+/// Gravity applied only when the hull centre is above the water line
+/// (the sub is negatively buoyant out of water, nothing holds it up).
 const AIR_GRAVITY: f32 = 18.0;
 /// Epsilon padding used when snapping to a block face to avoid getting
 /// re-flagged as colliding on the next frame.
 const COLLISION_EPSILON: f32 = 1e-3;
 
-/// Attach a [`Swimmer`] + [`Oxygen`] to every `Camera3d` that doesn't
-/// have them yet. Mirrors the old fly-cam's attach pass.
-fn attach_swimmer(
+/// Promote every bare `Camera3d` into a piloted sub by attaching
+/// [`Sub`] + [`Oxygen`]. Mirrors the old fly-cam's attach pass.
+fn attach_sub(
     mut commands: Commands,
-    cameras: Query<(Entity, &Transform), (With<Camera3d>, Without<Swimmer>)>,
+    cameras: Query<(Entity, &Transform), (With<Camera3d>, Without<Sub>)>,
 ) {
     for (entity, transform) in &cameras {
         let (yaw, pitch, _) = transform.rotation.to_euler(EulerRot::YXZ);
         commands.entity(entity).insert((
-            Swimmer {
+            Sub {
                 yaw,
                 pitch,
                 ..default()
@@ -133,10 +131,10 @@ fn attach_swimmer(
     }
 }
 
-fn apply_swimmer_look(
+fn apply_sub_look(
     motion: Res<AccumulatedMouseMotion>,
     windows: Query<&CursorOptions, With<PrimaryWindow>>,
-    mut swimmers: Query<(&mut Transform, &mut Swimmer)>,
+    mut subs: Query<(&mut Transform, &mut Sub)>,
 ) {
     let Ok(cursor) = windows.single() else {
         return;
@@ -150,80 +148,80 @@ fn apply_swimmer_look(
         return;
     }
 
-    for (mut transform, mut swimmer) in &mut swimmers {
-        swimmer.yaw -= delta.x * swimmer.sensitivity;
-        swimmer.pitch -= delta.y * swimmer.sensitivity;
-        swimmer.pitch = swimmer.pitch.clamp(
+    for (mut transform, mut sub) in &mut subs {
+        sub.yaw -= delta.x * sub.sensitivity;
+        sub.pitch -= delta.y * sub.sensitivity;
+        sub.pitch = sub.pitch.clamp(
             -std::f32::consts::FRAC_PI_2 + 0.01,
             std::f32::consts::FRAC_PI_2 - 0.01,
         );
 
-        transform.rotation = Quat::from_axis_angle(Vec3::Y, swimmer.yaw)
-            * Quat::from_axis_angle(Vec3::X, swimmer.pitch);
+        transform.rotation =
+            Quat::from_axis_angle(Vec3::Y, sub.yaw) * Quat::from_axis_angle(Vec3::X, sub.pitch);
     }
 }
 
-fn apply_swimmer_motion(
+fn apply_sub_motion(
     keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
     chunk_map: Res<ChunkMap>,
     chunks: Query<&Chunk>,
-    mut swimmers: Query<(&mut Transform, &mut Swimmer)>,
+    mut subs: Query<(&mut Transform, &mut Sub)>,
 ) {
     let dt = time.delta_secs().min(0.05);
     if dt <= 0.0 {
         return;
     }
 
-    for (mut transform, mut swimmer) in &mut swimmers {
-        let wish = wish_direction(&keys, swimmer.yaw);
+    for (mut transform, mut sub) in &mut subs {
+        let wish = wish_direction(&keys, sub.yaw);
         let boost = if keys.pressed(KeyCode::ControlLeft) {
-            swimmer.sprint
+            sub.sprint
         } else {
             1.0
         };
-        let target = wish * swimmer.speed * boost;
+        let target = wish * sub.speed * boost;
 
-        let submerged = is_submerged(transform.translation, swimmer.aabb_half);
+        let submerged = is_submerged(transform.translation, sub.aabb_half);
         let tau = if submerged { WATER_TAU } else { AIR_TAU };
         let alpha = 1.0 - (-dt / tau).exp();
-        let current_v = swimmer.velocity;
-        swimmer.velocity += (target - current_v) * alpha;
+        let current_v = sub.velocity;
+        sub.velocity += (target - current_v) * alpha;
 
         if !submerged {
-            // Above water we sink under gravity; the damping term above
-            // still fights the keyboard wish-vector, so holding Space
-            // lets the player climb back out.
-            swimmer.velocity.y -= AIR_GRAVITY * dt;
+            // Out of water the sub is heavier than air; the damping term
+            // above still follows the keyboard wish-vector, so holding
+            // Space bleeds the sub back into the sea.
+            sub.velocity.y -= AIR_GRAVITY * dt;
         }
 
         let resolved = resolve_collisions(
             transform.translation,
-            swimmer.velocity * dt,
-            swimmer.aabb_half,
+            sub.velocity * dt,
+            sub.aabb_half,
             |p| lookup_block_solid(p, &chunk_map, &chunks),
         );
         transform.translation = resolved.position;
-        // Kill velocity on axes that bumped into geometry, so the player
+        // Kill velocity on axes that bumped into geometry, so the sub
         // doesn't "stick" to walls while input keeps pushing.
         if resolved.hit.x {
-            swimmer.velocity.x = 0.0;
+            sub.velocity.x = 0.0;
         }
         if resolved.hit.y {
-            swimmer.velocity.y = 0.0;
+            sub.velocity.y = 0.0;
         }
         if resolved.hit.z {
-            swimmer.velocity.z = 0.0;
+            sub.velocity.z = 0.0;
         }
     }
 }
 
-fn tick_oxygen(time: Res<Time>, mut swimmers: Query<(&Transform, &mut Oxygen), With<Swimmer>>) {
+fn tick_oxygen(time: Res<Time>, mut subs: Query<(&Transform, &mut Oxygen), With<Sub>>) {
     let dt = time.delta_secs();
     if dt <= 0.0 {
         return;
     }
-    for (transform, mut oxygen) in &mut swimmers {
+    for (transform, mut oxygen) in &mut subs {
         step_oxygen(&mut oxygen, dt, transform.translation.y);
     }
 }
@@ -279,7 +277,7 @@ pub struct CollisionResult {
 
 /// Sweep `position` by `delta` against the voxel grid described by the
 /// `solid` closure. Axes are resolved sequentially (X, Z, Y) so the
-/// swimmer can slide along walls without snagging on block edges.
+/// sub can slide along walls without snagging on block edges.
 pub fn resolve_collisions(
     position: Vec3,
     delta: Vec3,
@@ -365,7 +363,7 @@ fn lookup_block_solid(block: IVec3, chunk_map: &ChunkMap, chunks: &Query<&Chunk>
     block.is_opaque()
 }
 
-/// True when the swimmer's body centre is submerged. Using the centre
+/// True when the sub's body centre is submerged. Using the centre
 /// (not just "head below water") makes the air/water transition kick in
 /// once the player is more-than-half under, which reads as natural.
 pub fn is_submerged(pos: Vec3, _half: Vec3) -> bool {
