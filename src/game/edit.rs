@@ -2,12 +2,12 @@
 //!
 //! Runs a voxel DDA raycast from the camera each frame to find the targeted
 //! block, draws a wireframe highlight on it, and responds to left/right
-//! mouse clicks to break or place blocks. Number keys 1-5 cycle the
-//! currently held block type.
+//! mouse clicks to break or place. Breaks deposit the broken block into the
+//! matching inventory slot; placements consume one unit from the selected
+//! slot and do nothing when that slot is empty.
 
 use bevy::color::palettes::css::YELLOW;
 use bevy::input::ButtonInput;
-use bevy::input::keyboard::KeyCode;
 use bevy::input::mouse::MouseButton;
 use bevy::prelude::*;
 use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
@@ -15,35 +15,21 @@ use bevy::window::{CursorGrabMode, CursorOptions, PrimaryWindow};
 use super::blocks::BlockType;
 use super::chunk::Chunk;
 use super::chunk_map::{ChunkMap, world_block_to_chunk};
+use super::inventory::Inventory;
 
 /// Registers block-editing resources and systems.
 pub struct ChunkEditPlugin;
 
 impl Plugin for ChunkEditPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<SelectedBlock>()
-            .init_resource::<TargetedBlock>()
-            .add_systems(Startup, spawn_hotbar)
-            .add_systems(
-                Update,
-                (
-                    raycast_target,
-                    draw_target_highlight.after(raycast_target),
-                    cycle_selected_block,
-                    update_hotbar_label,
-                    edit_blocks.after(raycast_target),
-                ),
-            );
-    }
-}
-
-/// The block type the player will place on right-click.
-#[derive(Resource)]
-pub struct SelectedBlock(pub BlockType);
-
-impl Default for SelectedBlock {
-    fn default() -> Self {
-        Self(BlockType::Stone)
+        app.init_resource::<TargetedBlock>().add_systems(
+            Update,
+            (
+                raycast_target,
+                draw_target_highlight.after(raycast_target),
+                edit_blocks.after(raycast_target),
+            ),
+        );
     }
 }
 
@@ -204,28 +190,12 @@ fn draw_target_highlight(targeted: Res<TargetedBlock>, mut gizmos: Gizmos) {
     );
 }
 
-const HOTBAR: [(KeyCode, BlockType); 5] = [
-    (KeyCode::Digit1, BlockType::Stone),
-    (KeyCode::Digit2, BlockType::Sand),
-    (KeyCode::Digit3, BlockType::Dirt),
-    (KeyCode::Digit4, BlockType::Coral),
-    (KeyCode::Digit5, BlockType::Kelp),
-];
-
-fn cycle_selected_block(keys: Res<ButtonInput<KeyCode>>, mut selected: ResMut<SelectedBlock>) {
-    for (key, block) in HOTBAR {
-        if keys.just_pressed(key) {
-            selected.0 = block;
-        }
-    }
-}
-
 fn edit_blocks(
     mouse: Res<ButtonInput<MouseButton>>,
     cursors: Query<&CursorOptions, With<PrimaryWindow>>,
     mut was_locked: Local<bool>,
     targeted: Res<TargetedBlock>,
-    selected: Res<SelectedBlock>,
+    mut inventory: ResMut<Inventory>,
     chunk_map: Res<ChunkMap>,
     mut chunks: Query<(&mut Chunk, &mut Mesh3d)>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -248,6 +218,14 @@ fn edit_blocks(
     };
 
     if mouse.just_pressed(MouseButton::Left) {
+        // Break: read the block type first so we can deposit it, then clear.
+        let broken = {
+            let (chunk_pos, local) = world_block_to_chunk(target.world_block);
+            chunk_map
+                .get(chunk_pos)
+                .and_then(|e| chunks.get(e).ok())
+                .map(|(c, _)| c.get(local.x as usize, local.y as usize, local.z as usize))
+        };
         set_block(
             target.world_block,
             BlockType::Air,
@@ -255,89 +233,48 @@ fn edit_blocks(
             &mut chunks,
             &mut meshes,
         );
+        if let Some(block) = broken
+            && !block.is_air()
+        {
+            inventory.deposit(block);
+        }
     } else if mouse.just_pressed(MouseButton::Right) {
+        // Place: only if the active slot has stock and we hit a real face.
+        if target.face_normal == IVec3::ZERO {
+            return;
+        }
+        let Some(block) = inventory.peek_selected() else {
+            return;
+        };
         let place_pos = target.world_block + target.face_normal;
-        // Don't place inside the existing target cell.
-        if target.face_normal != IVec3::ZERO {
-            set_block(place_pos, selected.0, &chunk_map, &mut chunks, &mut meshes);
+        // Only deduct inventory once we know the placement actually landed
+        // (e.g. not in an unloaded chunk at the world edge).
+        if set_block(place_pos, block, &chunk_map, &mut chunks, &mut meshes) {
+            inventory.take_selected();
         }
     }
 }
 
+/// Writes `block` into `world_block`, rebuilding the chunk mesh on success.
+///
+/// Returns `true` if the write hit a loaded chunk, `false` if it was dropped
+/// (e.g. the coordinate is outside the spawned world).
 fn set_block(
     world_block: IVec3,
     block: BlockType,
     chunk_map: &ChunkMap,
     chunks: &mut Query<(&mut Chunk, &mut Mesh3d)>,
     meshes: &mut ResMut<Assets<Mesh>>,
-) {
+) -> bool {
     let (chunk_pos, local) = world_block_to_chunk(world_block);
     let Some(entity) = chunk_map.get(chunk_pos) else {
-        return;
+        return false;
     };
     let Ok((mut chunk, mut mesh)) = chunks.get_mut(entity) else {
-        return;
+        return false;
     };
     chunk.set(local.x as usize, local.y as usize, local.z as usize, block);
     let new_mesh = chunk.build_mesh();
     mesh.0 = meshes.add(new_mesh);
-}
-
-/// Marker for the hotbar text node so `update_hotbar_label` can find it.
-#[derive(Component)]
-struct HotbarLabel;
-
-fn spawn_hotbar(mut commands: Commands) {
-    commands.spawn((
-        Text::new("Hold: Stone   (1 Stone  2 Sand  3 Dirt  4 Coral  5 Kelp)"),
-        TextFont {
-            font_size: 16.0,
-            ..default()
-        },
-        TextColor(Color::srgba(0.9, 0.97, 1.0, 0.9)),
-        Node {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(12.0),
-            left: Val::Px(12.0),
-            ..default()
-        },
-        HotbarLabel,
-        Name::new("Hotbar Label"),
-    ));
-
-    commands.spawn((
-        Text::new("+"),
-        TextFont {
-            font_size: 28.0,
-            ..default()
-        },
-        TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Percent(50.0),
-            left: Val::Percent(50.0),
-            margin: UiRect {
-                top: Val::Px(-14.0),
-                left: Val::Px(-7.0),
-                ..default()
-            },
-            ..default()
-        },
-        Name::new("Crosshair"),
-    ));
-}
-
-fn update_hotbar_label(
-    selected: Res<SelectedBlock>,
-    mut labels: Query<&mut Text, With<HotbarLabel>>,
-) {
-    if !selected.is_changed() {
-        return;
-    }
-    for mut text in &mut labels {
-        text.0 = format!(
-            "Hold: {:?}   (1 Stone  2 Sand  3 Dirt  4 Coral  5 Kelp)",
-            selected.0
-        );
-    }
+    true
 }
