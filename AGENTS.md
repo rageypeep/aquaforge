@@ -39,7 +39,7 @@ cargo build
 cargo test
 
 # Run a single module's tests:
-cargo test inventory::tests
+cargo test chunk::tests
 
 # NOTE: aquaforge is a *binary* crate, not a lib. `cargo test --lib` errors.
 ```
@@ -149,9 +149,11 @@ aquaforge/
 ## Testing notes
 
 - **`cargo test` runs unit tests as part of the bin crate.** Example:
-  `src/game/inventory.rs` has a `#[cfg(test)] mod tests` block
-  exercising `peek_selected` / `take_selected` / `deposit`. Tests live
-  alongside the code they cover.
+  `src/game/chunk.rs` has a `#[cfg(test)] mod tests` block exercising
+  the greedy mesher, AO baking, and face-visibility predicates. Tests
+  live alongside the code they cover — when a new module lands with
+  non-trivial logic (e.g. the `Inventory` resource coming in PR #7),
+  add its own `#[cfg(test)] mod tests` in the same file.
 - **GUI end-to-end testing on Linux VMs:** boot the release binary
   under lavapipe with
   ```bash
