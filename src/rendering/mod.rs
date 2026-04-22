@@ -40,13 +40,12 @@ impl Plugin for AtmospherePlugin {
         // `PbrPlugin` (part of `DefaultPlugins`), so we only need to attach
         // the `ScreenSpaceAmbientOcclusion` component to the camera.
         app.insert_resource(ClearColor(WATER_COLOR))
-<<<<<<< HEAD
-            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin, HeadlightsPlugin))
-||||||| parent of 54b60e8 (Replace fly-cam with a swimming player: swept-AABB collision + oxygen)
-            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin))
-=======
-            .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin, ui::HudPlugin))
->>>>>>> 54b60e8 (Replace fly-cam with a swimming player: swept-AABB collision + oxygen)
+            .add_plugins((
+                lighting::LightingPlugin,
+                WaterMaterialPlugin,
+                HeadlightsPlugin,
+                ui::HudPlugin,
+            ))
             .add_systems(Startup, (spawn_camera, spawn_water_surface))
             .add_systems(Update, follow_camera_on_xz);
     }
