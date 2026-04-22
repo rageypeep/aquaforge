@@ -57,7 +57,7 @@ struct GodRaysParams {
 
 @fragment
 fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
-    let original = textureSample(scene_texture, scene_sampler, in.uv);
+    let original = textureSampleLevel(scene_texture, scene_sampler, in.uv, 0.0);
 
     // Sun off-screen or behind us → nothing to add.
     if params.visibility <= 0.0 || params.samples < 1.0 {
@@ -87,7 +87,13 @@ fn fragment(in: FullscreenVertexOutput) -> @location(0) vec4<f32> {
         // (the sky / water column near the surface) to contribute to
         // shafts. The `max(0, x - threshold)` keeps the dim seabed
         // from smearing into the water.
-        let sample_rgb = textureSample(scene_texture, scene_sampler, uv).rgb;
+        //
+        // `textureSampleLevel` with an explicit LOD rather than
+        // `textureSample` so WGSL doesn't need this call to sit in
+        // uniform control flow — the `break` above makes the surrounding
+        // flow non-uniform, and the scene target is a single-mip surface
+        // anyway so implicit derivatives would be wasted.
+        let sample_rgb = textureSampleLevel(scene_texture, scene_sampler, uv, 0.0).rgb;
         let brightness = max(max(sample_rgb.r, sample_rgb.g), sample_rgb.b);
         let gated = sample_rgb * max(0.0, brightness - 0.25);
 
