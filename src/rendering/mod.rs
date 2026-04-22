@@ -7,8 +7,7 @@ use bevy::post_process::bloom::Bloom;
 use bevy::prelude::*;
 use bevy::render::view::{Hdr, Msaa};
 
-use crate::game::chunk::CHUNK_SIZE;
-use crate::game::world::{WATER_LEVEL, WORLD_CHUNKS_XZ};
+use crate::game::world::WATER_LEVEL;
 
 use self::water::{WaterMaterial, WaterMaterialExt, WaterMaterialPlugin};
 
@@ -23,6 +22,11 @@ pub struct AtmospherePlugin;
 /// Colour of the water volume; used for fog and (semi-opaquely) the surface.
 pub const WATER_COLOR: Color = Color::srgb(0.04, 0.22, 0.34);
 
+/// Edge length of the sea-surface plane, in world units. Sized large
+/// enough to fully cover the streaming load radius at the horizon even
+/// when the camera is near its corner.
+const SEA_SURFACE_SIZE: f32 = 512.0;
+
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
         // `ScreenSpaceAmbientOcclusionPlugin` is already registered by
@@ -30,7 +34,27 @@ impl Plugin for AtmospherePlugin {
         // the `ScreenSpaceAmbientOcclusion` component to the camera.
         app.insert_resource(ClearColor(WATER_COLOR))
             .add_plugins((lighting::LightingPlugin, WaterMaterialPlugin))
-            .add_systems(Startup, (spawn_camera, spawn_water_surface));
+            .add_systems(Startup, (spawn_camera, spawn_water_surface))
+            .add_systems(Update, follow_camera_on_xz);
+    }
+}
+
+/// Marker for entities whose XZ position should follow the camera so
+/// they stay centred as the streaming world scrolls.
+#[derive(Component)]
+struct FollowCameraXZ;
+
+fn follow_camera_on_xz(
+    cameras: Query<&GlobalTransform, (With<Camera3d>, Without<FollowCameraXZ>)>,
+    mut followers: Query<&mut Transform, With<FollowCameraXZ>>,
+) {
+    let Ok(cam) = cameras.single() else {
+        return;
+    };
+    let cam_xz = cam.translation();
+    for mut t in followers.iter_mut() {
+        t.translation.x = cam_xz.x;
+        t.translation.z = cam_xz.z;
     }
 }
 
@@ -75,19 +99,17 @@ fn spawn_water_surface(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<WaterMaterial>>,
 ) {
-    let size = (WORLD_CHUNKS_XZ as f32) * (CHUNK_SIZE as f32) * 4.0;
-
     // The vertex shader displaces per-vertex; we need enough subdivisions
     // that the wavelength is well-sampled. Our shortest wave-vector is
     // ~0.35 rad/m (wavelength ≈ 18 m), so 6 m spacing gives ~3 vertices per
     // wavelength — enough to read as smooth motion without choking llvmpipe.
     let spacing: f32 = 6.0;
-    let subdivisions = (size / spacing).round().max(2.0) as u32;
+    let subdivisions = (SEA_SURFACE_SIZE / spacing).round().max(2.0) as u32;
 
     let mesh = meshes.add(
         Plane3d::default()
             .mesh()
-            .size(size, size)
+            .size(SEA_SURFACE_SIZE, SEA_SURFACE_SIZE)
             .subdivisions(subdivisions),
     );
 
@@ -113,6 +135,7 @@ fn spawn_water_surface(
         Mesh3d(mesh),
         MeshMaterial3d(material),
         Transform::from_translation(Vec3::new(0.0, WATER_LEVEL, 0.0)),
+        FollowCameraXZ,
         Name::new("Sea Surface"),
     ));
 }

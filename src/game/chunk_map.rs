@@ -1,6 +1,7 @@
 //! Lookup from chunk grid coordinates to the ECS entity holding that chunk.
 
 use std::collections::HashMap;
+use std::collections::hash_map;
 
 use bevy::prelude::*;
 
@@ -20,6 +21,18 @@ impl ChunkMap {
 
     pub fn get(&self, chunk_pos: IVec3) -> Option<Entity> {
         self.entities.get(&chunk_pos).copied()
+    }
+
+    pub fn contains(&self, chunk_pos: IVec3) -> bool {
+        self.entities.contains_key(&chunk_pos)
+    }
+
+    pub fn remove(&mut self, chunk_pos: IVec3) -> Option<Entity> {
+        self.entities.remove(&chunk_pos)
+    }
+
+    pub fn iter(&self) -> hash_map::Iter<'_, IVec3, Entity> {
+        self.entities.iter()
     }
 }
 
