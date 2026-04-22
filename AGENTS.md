@@ -55,7 +55,10 @@ PR so the diff stays reviewable.
 ```
 aquaforge/
 ├── assets/
-│   └── shaders/water.wgsl   # Custom vertex shader for animated water
+│   └── shaders/
+│       ├── water.wgsl       # Animated sea-surface vertex shader (PR #11)
+│       ├── caustics.wgsl    # Chunk-material fragment: animated caustics (PR #17)
+│       └── god_rays.wgsl    # Fullscreen post-process: radial light shafts (PR #17)
 ├── docs/                    # Human-facing progress page (GitHub Pages target)
 │   ├── index.html           # Backlog + shipped features — UPDATE when adding PRs
 │   └── screenshots/
@@ -71,8 +74,10 @@ aquaforge/
 │   ├── rendering/
 │   │   ├── mod.rs           # AtmospherePlugin: ambient, fog, HDR, sea plane
 │   │   ├── atlas.rs         # Procedural block texture atlas (BlockAtlasPlugin)
+│   │   ├── caustics.rs      # ChunkMaterial = ExtendedMaterial<Standard, Caustics> (PR #17)
+│   │   ├── god_rays.rs      # Fullscreen post-process Node in Core3d graph (PR #17)
 │   │   ├── headlights.rs    # Toggleable sub-style spot-light headlights
-│   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping
+│   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping, SunLight marker
 │   │   ├── water.rs         # ExtendedMaterial + MaterialPlugin for water
 │   │   ├── shaders.rs       # (stub, reserved for future custom materials)
 │   │   └── ui.rs            # Oxygen HUD meter (HudPlugin)
@@ -112,6 +117,17 @@ aquaforge/
   tessellated `Plane3d` driven by `WaterMaterialPlugin` (an
   `ExtendedMaterial<StandardMaterial, WaterMaterialExt>` with a custom
   vertex shader in `assets/shaders/water.wgsl`).
+- **Chunk material is an `ExtendedMaterial` too.** Since PR #17, chunks
+  render with `ChunkMaterial = ExtendedMaterial<StandardMaterial,
+  CausticsMaterialExt>`. The extension's fragment shader
+  (`assets/shaders/caustics.wgsl`) adds a procedural sunlight-caustics
+  term to the PBR emissive so shadowed crevices still pick up the
+  projected streaks.
+- **God-rays are a Core3d post-process.** `GodRaysPlugin` (PR #17)
+  registers a `ViewNode` between `Node3d::Tonemapping` and
+  `Node3d::EndMainPassPostProcessing`; `GodRaysSettings` on the camera
+  carries the sun's screen-UV position, updated from the `SunLight`
+  marker each frame.
 - **Input uses `CursorGrabMode::Locked`.** `systems/input.rs` is the
   single source of truth for the locked state: left-click grabs, Esc
   releases. The sub controller (`systems/sub.rs`) reads `WASD`,
@@ -226,4 +242,5 @@ aquaforge/
 | #12 | Merged | Streaming chunk loader (Chebyshev radius, per-frame caps, hysteresis) |
 | #13 | Merged | Procedural block texture atlas sampled by the chunk material |
 | #15 | Merged | Toggleable sub-style headlights (`L` to toggle) |
-| #16 | Open | Sub controller: swept-AABB collision + onboard O2 reserve + HUD |
+| #16 | Merged | Sub controller: swept-AABB collision + onboard O2 reserve + HUD |
+| #17 | Open | Caustics fragment shader + fullscreen god-rays post-process |
