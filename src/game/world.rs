@@ -13,6 +13,9 @@ use bevy::prelude::*;
 use super::chunk::{CHUNK_SIZE, Chunk};
 use super::chunk_map::ChunkMap;
 use crate::rendering::atlas::BlockAtlas;
+use crate::rendering::caustics::{
+    CausticsMaterialExt, CausticsParams, ChunkMaterial as ChunkMaterialAsset,
+};
 
 /// Vertical extent of the world, in chunks. The seabed and water column
 /// fit inside `0..VERTICAL_CHUNKS`, so streaming only varies the chunk
@@ -32,9 +35,13 @@ pub const WATER_LEVEL: f32 = (VERTICAL_CHUNKS as f32) * (CHUNK_SIZE as f32) - 2.
 pub struct ChunkTag(#[allow(dead_code)] pub IVec3);
 
 /// Shared PBR material every chunk mesh renders with. Built once at
-/// startup so we never hit `Assets<StandardMaterial>` during streaming.
+/// startup so we never hit the material asset store during streaming.
+///
+/// The material is an [`ExtendedMaterial`](bevy::pbr::ExtendedMaterial)
+/// wrapping [`StandardMaterial`]; the extension contributes a fragment
+/// shader that overlays animated caustics on top of PBR.
 #[derive(Resource)]
-pub struct ChunkMaterial(pub Handle<StandardMaterial>);
+pub struct ChunkMaterial(pub Handle<ChunkMaterialAsset>);
 
 /// Tunables for the on-demand chunk streamer.
 #[derive(Resource, Debug, Clone, Copy)]
@@ -79,10 +86,10 @@ impl Plugin for WorldPlugin {
 
 fn spawn_chunk_material(
     mut commands: Commands,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<ChunkMaterialAsset>>,
     atlas: Res<BlockAtlas>,
 ) {
-    let handle = materials.add(StandardMaterial {
+    let base = StandardMaterial {
         // White base_color so the atlas texture and per-vertex AO are
         // the only things driving the surface colour.
         base_color: Color::WHITE,
@@ -91,7 +98,14 @@ fn spawn_chunk_material(
         metallic: 0.0,
         reflectance: 0.05,
         ..default()
-    });
+    };
+    let extension = CausticsMaterialExt {
+        params: CausticsParams {
+            water_level: WATER_LEVEL,
+            ..default()
+        },
+    };
+    let handle = materials.add(ChunkMaterialAsset { base, extension });
     commands.insert_resource(ChunkMaterial(handle));
 }
 
@@ -145,7 +159,7 @@ fn spawn_chunk(
     commands
         .spawn((
             Mesh3d(meshes.add(mesh)),
-            MeshMaterial3d(material.0.clone()),
+            MeshMaterial3d::<ChunkMaterialAsset>(material.0.clone()),
             Transform::from_translation(origin),
             ChunkTag(chunk_pos),
             chunk,

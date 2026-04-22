@@ -22,6 +22,8 @@
 use bevy::light::{CascadeShadowConfigBuilder, DirectionalLightShadowMap};
 use bevy::prelude::*;
 
+use super::god_rays::SunLight;
+
 /// Cascaded shadow-map resolution per cascade, in texels.
 ///
 /// Must be a power of two. 4096 gives crisp contact shadows on the nearest
@@ -86,6 +88,7 @@ fn spawn_sun(mut commands: Commands) {
         // Aim the sun slightly off-axis so chunk faces pick up a clear
         // light/shadow split rather than a flat top-down wash.
         Transform::from_xyz(40.0, 80.0, 25.0).looking_at(Vec3::ZERO, Vec3::Y),
+        SunLight,
         Name::new("Sun"),
     ));
 }

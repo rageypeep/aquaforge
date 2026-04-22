@@ -341,10 +341,15 @@
           <li><span class="pill done">PR #15</span>
             <span>Toggleable sub-style headlights that splay from the camera and
               light the scene ahead of the sub.</span></li>
-          <li><span class="pill wip">Mini-sub + collision + O2</span>
-            <span>Replaces the fly-cam with a piloted mini-sub: hull AABB, water
-              drag, swept-AABB collision against the voxel grid, and an onboard
-              oxygen reserve that drains below water and refills at the surface.</span></li>
+          <li><span class="pill done">PR #16</span>
+            <span>Piloted mini-sub: hull AABB, water drag, per-axis swept
+              collision against the voxel grid, and an onboard O2 reserve that
+              drains below water and refills at the surface.</span></li>
+          <li><span class="pill wip">Caustics + god-rays</span>
+            <span>Animated sunlight caustics projected onto seabed surfaces
+              (fragment-shader ExtendedMaterial, faded with depth below the
+              water plane) plus a screen-space volumetric god-rays post-process
+              whose light shafts track the sun's screen-space position.</span></li>
         </ul>
       </div>
     </section>
@@ -556,8 +561,8 @@ cargo run --release</code></pre>
             <p class="dim">
               Cascaded shadows, tuned sun + ambient brightness, and
               tonemapping are now live in
-              <code>rendering/lighting.rs</code>. Caustics + volumetric
-              god-rays remain the next logical step.
+              <code>rendering/lighting.rs</code>; caustics and volumetric
+              god-rays are now in review (see below).
             </p>
             <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/lighting.rs</span></div>
           </div>
@@ -586,15 +591,22 @@ cargo run --release</code></pre>
           </div>
 
           <div class="rec">
-            <h4>Caustics &amp; god-rays</h4>
+            <h4>Caustics &amp; god-rays <span class="pill wip">In review</span></h4>
             <p class="dim">
-              The next underwater-atmosphere feature: caustics projected on
-              the seabed plus volumetric light shafts descending from the
-              sun. Start with a screen-space post-process and an animated
-              projector texture; graduate to real volumetric lighting
-              later.
+              Animated caustics are now baked into the chunk material via an
+              <code>ExtendedMaterial&lt;StandardMaterial, CausticsMaterialExt&gt;</code>
+              &mdash; a sum-of-sinusoids pattern in world XZ, masked by the
+              upward component of the surface normal and a depth falloff
+              below the water plane, added to the PBR emissive term so
+              shadowed crevices still pick up the projected streaks. God-rays
+              are a separate fullscreen post-process Node wired between
+              tonemapping and <code>EndMainPassPostProcessing</code> in the
+              <code>Core3d</code> render graph: a classic radial light-shaft
+              sweep toward the sun's screen-space projection, with a
+              brightness gate so only bright sky / surface pixels smear into
+              shafts.
             </p>
-            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/lighting.rs</span></div>
+            <div class="tags"><span class="tag p2">P2</span><span class="tag">rendering/caustics.rs</span><span class="tag">rendering/god_rays.rs</span><span class="tag">assets/shaders/caustics.wgsl</span><span class="tag">assets/shaders/god_rays.wgsl</span></div>
           </div>
         </div>
 

@@ -10,10 +10,14 @@ use bevy::render::view::{Hdr, Msaa};
 use crate::game::chunk::CHUNK_SIZE;
 use crate::game::world::{StreamingConfig, WATER_LEVEL};
 
+use self::caustics::CausticsPlugin;
+use self::god_rays::{GodRaysPlugin, GodRaysSettings};
 use self::headlights::HeadlightsPlugin;
 use self::water::{WaterMaterial, WaterMaterialExt, WaterMaterialPlugin};
 
 pub mod atlas;
+pub mod caustics;
+pub mod god_rays;
 pub mod headlights;
 pub mod lighting;
 pub mod shaders;
@@ -45,6 +49,8 @@ impl Plugin for AtmospherePlugin {
                 lighting::LightingPlugin,
                 WaterMaterialPlugin,
                 atlas::BlockAtlasPlugin,
+                CausticsPlugin,
+                GodRaysPlugin,
                 HeadlightsPlugin,
                 ui::HudPlugin,
             ))
@@ -104,6 +110,7 @@ fn spawn_camera(mut commands: Commands) {
             directional_light_exponent: 25.0,
         },
         Bloom::NATURAL,
+        god_rays::clamp_settings(GodRaysSettings::default()),
         Name::new("Player Camera"),
     ));
 }
