@@ -20,7 +20,7 @@ terrain and a piloted mini-sub.
 | Mouse              | Look around (after clicking the window)         |
 | `Left Click`       | Capture the mouse / break the targeted block    |
 | `Right Click`      | Place from the active hotbar slot               |
-| `1`–`6`            | Select hotbar slot                              |
+| `1`–`5`            | Select hotbar slot                              |
 | `Esc`              | Release the mouse                               |
 
 The camera is a real sub now: a compact AABB hull collides with the

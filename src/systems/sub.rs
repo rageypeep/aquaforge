@@ -113,7 +113,7 @@ const AIR_GRAVITY: f32 = 18.0;
 const COLLISION_EPSILON: f32 = 1e-3;
 
 /// Promote every bare `Camera3d` into a piloted sub by attaching
-/// [`Sub`] + [`Oxygen`]. Mirrors the old fly-cam's attach pass.
+/// [`Sub`] + [`Oxygen`].
 fn attach_sub(
     mut commands: Commands,
     cameras: Query<(Entity, &Transform), (With<Camera3d>, Without<Sub>)>,
