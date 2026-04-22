@@ -5,7 +5,7 @@ use bevy::light::ShadowFilteringMethod;
 use bevy::pbr::{DistanceFog, FogFalloff, ScreenSpaceAmbientOcclusion};
 use bevy::post_process::bloom::Bloom;
 use bevy::prelude::*;
-use bevy::render::view::Hdr;
+use bevy::render::view::{Hdr, Msaa};
 
 use crate::game::chunk::CHUNK_SIZE;
 use crate::game::world::{WATER_LEVEL, WORLD_CHUNKS_XZ};
@@ -22,11 +22,11 @@ pub const WATER_COLOR: Color = Color::srgb(0.04, 0.22, 0.34);
 
 impl Plugin for AtmospherePlugin {
     fn build(&self, app: &mut App) {
+        // `ScreenSpaceAmbientOcclusionPlugin` is already registered by
+        // `PbrPlugin` (part of `DefaultPlugins`), so we only need to attach
+        // the `ScreenSpaceAmbientOcclusion` component to the camera.
         app.insert_resource(ClearColor(WATER_COLOR))
-            .add_plugins((
-                lighting::LightingPlugin,
-                bevy::pbr::ScreenSpaceAmbientOcclusionPlugin,
-            ))
+            .add_plugins(lighting::LightingPlugin)
             .add_systems(Startup, (spawn_camera, spawn_water_surface));
     }
 }
@@ -42,9 +42,13 @@ fn spawn_camera(mut commands: Commands) {
         DebandDither::Enabled,
         // Soft-but-cheap PCF; good match for the non-temporal renderer.
         ShadowFilteringMethod::Gaussian,
-        // Screen-space AO grounds block corners and contact points. The
-        // plugin gracefully no-ops on GPUs without the required storage
-        // texture limits, so it's safe to enable unconditionally.
+        // SSAO requires MSAA disabled. The blocky voxel style means we're
+        // not losing much by dropping multisampling — the silhouettes are
+        // axis-aligned quads.
+        Msaa::Off,
+        // Screen-space AO grounds block corners and contact points. On GPUs
+        // that don't meet the storage-texture limit the plugin logs a
+        // warning and skips; it never crashes.
         ScreenSpaceAmbientOcclusion::default(),
         Transform::from_xyz(0.0, WATER_LEVEL - 4.0, 20.0)
             .looking_at(Vec3::new(0.0, WATER_LEVEL - 6.0, 0.0), Vec3::Y),
