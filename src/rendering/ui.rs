@@ -1,24 +1,34 @@
 //! Minimal HUD: an O2-reserve meter anchored to the bottom-centre of
-//! the screen. Re-reads the current sub's [`Oxygen`] component each
-//! frame and resizes a coloured bar. Stays hidden while the reserve
-//! is full so the viewport is clean when the sub is surfaced.
+//! the screen, plus an FPS / frame-time readout anchored top-left.
+//! Both re-read their data source each frame and update live Bevy UI
+//! nodes — no textures, no icons, no layout engine beyond stock
+//! flexbox.
 //!
-//! The HUD is intentionally dependency-free — just two `Node` entities
-//! and a [`Text`]. Anything fancier (icons, textures, animated fill
-//! gradient) should live in its own plugin and leave this one as a
+//! The HUD is intentionally dependency-free so it keeps working under
+//! `DefaultPlugins` alone. Anything fancier (animated gradients, icons,
+//! graphs) should live in its own plugin and leave this one as a
 //! fallback for headless runs / tests.
 
+use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use bevy::prelude::*;
 
 use crate::systems::sub::{Oxygen, Sub};
 
-/// Plugin that spawns the HUD and keeps it in sync with the sub.
+/// Plugin that spawns the HUD and keeps it in sync with the sub +
+/// frame-time diagnostics.
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_oxygen_hud)
-            .add_systems(Update, update_oxygen_hud);
+        // Own the frame-time diagnostics registration here — the FPS
+        // readout is the only consumer, and wiring it in at `HudPlugin`
+        // level keeps the aggregate (`AtmospherePlugin`) the only seam
+        // `main.rs` has to care about.
+        if !app.is_plugin_added::<FrameTimeDiagnosticsPlugin>() {
+            app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        }
+        app.add_systems(Startup, (spawn_oxygen_hud, spawn_fps_hud))
+            .add_systems(Update, (update_oxygen_hud, update_fps_hud));
     }
 }
 
@@ -127,4 +137,52 @@ fn update_oxygen_hud(
 
     fill_node.width = Val::Percent(pct * 100.0);
     *text = Text::new(format!("O2 {:>3.0}%", pct * 100.0));
+}
+
+/// Top-left FPS / frame-time readout driven by Bevy's
+/// [`FrameTimeDiagnosticsPlugin`]. Visible at all times so the
+/// streaming chunk loader, voxel-resolution changes, and post-process
+/// stack can be profiled without a debugger attached.
+#[derive(Component)]
+struct FpsHud;
+
+fn spawn_fps_hud(mut commands: Commands) {
+    commands.spawn((
+        Text::new("FPS --"),
+        TextFont {
+            font_size: 14.0,
+            ..default()
+        },
+        TextColor(Color::srgb(0.85, 0.95, 1.0)),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(8.0),
+            left: Val::Px(8.0),
+            padding: UiRect::all(Val::Px(4.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.4)),
+        FpsHud,
+        Name::new("FPS HUD"),
+    ));
+}
+
+fn update_fps_hud(diagnostics: Res<DiagnosticsStore>, mut hud: Query<&mut Text, With<FpsHud>>) {
+    let Ok(mut text) = hud.single_mut() else {
+        return;
+    };
+
+    // Smoothed averages are the right signal for a live perf HUD — the
+    // per-frame figure is noisy enough to be unreadable while piloting.
+    let fps = diagnostics
+        .get(&FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|d| d.smoothed());
+    let frame_ms = diagnostics
+        .get(&FrameTimeDiagnosticsPlugin::FRAME_TIME)
+        .and_then(|d| d.smoothed());
+
+    *text = match (fps, frame_ms) {
+        (Some(fps), Some(ms)) => Text::new(format!("FPS {fps:>5.1}  {ms:>5.2} ms")),
+        _ => Text::new("FPS --"),
+    };
 }

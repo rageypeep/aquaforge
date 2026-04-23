@@ -345,11 +345,16 @@
             <span>Piloted mini-sub: hull AABB, water drag, per-axis swept
               collision against the voxel grid, and an onboard O2 reserve that
               drains below water and refills at the surface.</span></li>
-          <li><span class="pill wip">Caustics + god-rays</span>
+          <li><span class="pill done">PR #17</span>
             <span>Animated sunlight caustics projected onto seabed surfaces
               (fragment-shader ExtendedMaterial, faded with depth below the
               water plane) plus a screen-space volumetric god-rays post-process
               whose light shafts track the sun's screen-space position.</span></li>
+          <li><span class="pill done">PR #18</span>
+            <span>FPS / frame-time readout anchored top-left, driven by
+              <code>FrameTimeDiagnosticsPlugin</code>. Small perf-instrumentation
+              HUD so voxel-resolution experiments and post-process changes are
+              visible live without attaching a debugger.</span></li>
         </ul>
       </div>
     </section>
