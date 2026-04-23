@@ -1,5 +1,6 @@
 //! AquaForge: an underwater, Minecraft-style voxel game built on Bevy 0.18.
 
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 
 mod game;
@@ -17,6 +18,7 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_plugins((
             rendering::AtmospherePlugin,
             game::GamePlugin,
