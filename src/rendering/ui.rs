@@ -20,6 +20,13 @@ pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
+        // Own the frame-time diagnostics registration here — the FPS
+        // readout is the only consumer, and wiring it in at `HudPlugin`
+        // level keeps the aggregate (`AtmospherePlugin`) the only seam
+        // `main.rs` has to care about.
+        if !app.is_plugin_added::<FrameTimeDiagnosticsPlugin>() {
+            app.add_plugins(FrameTimeDiagnosticsPlugin::default());
+        }
         app.add_systems(Startup, (spawn_oxygen_hud, spawn_fps_hud))
             .add_systems(Update, (update_oxygen_hud, update_fps_hud));
     }
