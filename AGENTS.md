@@ -80,7 +80,7 @@ aquaforge/
 │   │   ├── lighting.rs      # PBR rig: cascaded shadows, tonemapping, SunLight marker
 │   │   ├── water.rs         # ExtendedMaterial + MaterialPlugin for water
 │   │   ├── shaders.rs       # (stub, reserved for future custom materials)
-│   │   └── ui.rs            # Oxygen HUD meter (HudPlugin)
+│   │   └── ui.rs            # Oxygen HUD meter + FPS/frame-time readout (HudPlugin; PR #18)
 │   ├── systems/
 │   │   ├── mod.rs           # ControlsPlugin (composes InputPlugin + SubPlugin)
 │   │   ├── input.rs         # Cursor grab / release
@@ -243,4 +243,5 @@ aquaforge/
 | #13 | Merged | Procedural block texture atlas sampled by the chunk material |
 | #15 | Merged | Toggleable sub-style headlights (`L` to toggle) |
 | #16 | Merged | Sub controller: swept-AABB collision + onboard O2 reserve + HUD |
-| #17 | Open | Caustics fragment shader + fullscreen god-rays post-process |
+| #17 | Merged | Caustics fragment shader + fullscreen god-rays post-process |
+| #18 | Open | FPS / frame-time HUD readout (FrameTimeDiagnosticsPlugin in HudPlugin) |
